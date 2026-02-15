@@ -1,53 +1,59 @@
 # 🚛 Smart Trucking Invoice System
 
-**Smart Trucking Invoice System** adalah aplikasi manajemen invoice berbasis web modern yang dirancang khusus untuk **PT. TUNGGAL MANDIRI LOGISTIK**. Sistem ini mendigitalkan proses pembuatan invoice trucking, ekspor-impor, dan manajemen data keuangan dengan efisiensi tinggi dan tampilan antarmuka yang premium.
+**Smart Trucking Invoice System** adalah solusi digital modern yang dirancang untuk mengotomatisasi proses *invoicing* dan manajemen data logistik. Aplikasi ini mengubah alur kerja manual berbasis Excel menjadi sistem berbasis web yang efisien, terintegrasi, dan *scalable*.
+
+Dikembangkan oleh **Mang Do-san** (IT Consultant & Web Developer) sebagai solusi *Enterprise Resource Planning* (ERP) mini untuk sektor logistik.
 
 ![Dashboard Preview](public/logo-full.png)
 
-## ✨ Fitur Utama
+## 🌟 Overview Project
 
-### 1. Manajemen Invoice Cerdas
--   **16 Tipe Invoice**: Mendukung berbagai format invoice (Group A, B, Fees, Reimbursement, dll).
--   **Dynamic Numbering**: Penomoran otomatis dengan format `TML/TAHUN/BULAN/URUTAN` (Auto-increment).
--   **Auto-Complete**:
-    -   Database **Customer/Consignee** (~60 entri).
-    -   **Vehicle & Container**: Mencatat dan menyarankan nomor kendaraan/kontainer yang pernah diinput.
-    -   **Lokasi & Harga**: Input otomatis harga berdasarkan rute (Smart Price Logic).
+Sistem ini dibangun untuk mengatasi kompleksitas penagihan di industri trucking yang melibatkan banyak variabel (biaya lift-off, gate pass, cleaning, storage, dll). Dengan antarmuka yang intuitif dan *backend* yang ringan menggunakan Google Sheets, aplikasi ini menawarkan keseimbangan sempurna antara performa dan kemudahan penggunaan.
 
-### 2. Keuangan & Kalkulasi
--   **Auto-Formatting**: Input mata uang otomatis terformat (Contoh: `1.000.000`).
--   **Kalkulasi Otomatis**: Menghitung Total Harga, Gate Pass, Lift Off, dan biaya lainnya secara real-time.
--   **Column Totals**: Menampilkan ringkasan total per kolom di bagian bawah tabel.
+## ✨ Fitur Unggulan
 
-### 3. PDF Generator & Digital Signature
--   **Client-Side Generation**: Pembuatan PDF instan tanpa loading lama.
--   **Professional Layout**: Header perusahaan, logo, dan tata letak yang rapi sesuai standar industri.
--   **Tanda Tangan Digital**: Invoice otomatis ditandatangani secara digital (QR/Image).
+### 1. Advanced Invoice Management
+-   **Multi-Schema Support**: Mendukung 16+ jenis skema penagihan yang berbeda dalam satu platform.
+-   **Dynamic Auto-Numbering**: Sistem penomoran cerdas dengan format custom (e.g., `INV/YYYY/MM/XXX`).
+-   **Smart Auto-Complete**:
+    -   Database Consignee & Customer terpusat.
+    -   Riwayat Kendaraan & Kontainer otomatis tersimpan.
+    -   *Price Logic*: Otomatisasi harga berdasarkan rute (Single/Multi rate).
 
-### 4. Integrasi Google Apps Script (Backend)
--   **Data Backup**: Semua data invoice tersimpan otomatis ke **Google Sheets**.
--   **Struktur Data**:
-    -   `Transactions`: Data utama invoice (Header).
-    -   `InvoiceItems`: Rincian item per invoice (Detail).
-    -   `InvoiceCounter`: Penomoran otomatis yang sinkron.
+### 2. High-Performance Financial Tools
+-   **Real-time Calculation**: Kalkulasi otomatis untuk PPN, PPh, dan total biaya logistik.
+-   **Auto-Formatting**: Input mata uang dengan *locale* Indonesia (`Rp 1.000.000`) untuk mencegah human error.
+-   **Interactive Data Grid**: Tabel data responsif dengan fitur *summary row* untuk total per kolom.
+
+### 3. Client-Side PDF Generation
+-   **Fast & Secure**: Pembuatan PDF dilakukan di sisi klien (browser) menggunakan `@react-pdf/renderer` tanpa membebani server.
+-   **Digital Signing**: Integrasi tanda tangan digital QR/Image pada dokumen invoice.
+-   **Professional Layout**: Desain invoice standar industri yang siap cetak (A4).
+
+### 4. Serverless Backend (Google Apps Script)
+-   **Cost-Effective**: Menggunakan Google Sheets sebagai database (NoSQL-like) melalui Google Apps Script.
+-   **Real-time Sync**: Data invoice tersimpan otomatis dan dapat diakses kapan saja untuk keperluan audit/rekap.
+-   **Master-Detail Architecture**: Struktur data terpisah untuk *Header* (Transaksi) dan *Detail* (Item) demi integritas data.
 
 ---
 
-## 🛠️ Teknologi
+## 🛠️ Tech Stack
 
-Project ini dibangun dengan teknologi web modern untuk performa maksimal:
+Dibangun dengan teknologi terkini untuk menjamin kecepatan, keamanan, dan skalabilitas:
 
 -   **Frontend**: [Next.js 15](https://nextjs.org/) (App Router), [React](https://react.dev/)
--   **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Shadcn UI](https://ui.shadcn.com/)
--   **PDF Engine**: [@react-pdf/renderer](https://react-pdf.org/)
+-   **Language**: [TypeScript](https://www.typescriptlang.org/) for Type Safety
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
+-   **PDF Generation**: [@react-pdf/renderer](https://react-pdf.org/)
 -   **Icons**: [Lucide React](https://lucide.dev/)
--   **Backend / Database**: Google Apps Script (GAS) & Google Sheets
+-   **Utilities**: `zod` (Validation), `clsx` (Class handling)
+-   **Backend**: Google Apps Script (GAS) API
 
 ---
 
-## 🚀 Cara Install & Menjalankan (Local)
+## 🚀 Instalasi & Pengembangan
 
-Pastikan **Node.js** sudah terinstall di komputer Anda.
+Tertarik mempelajari kode sumbernya? Ikuti langkah berikut:
 
 1.  **Clone Repository**
     ```bash
@@ -60,38 +66,28 @@ Pastikan **Node.js** sudah terinstall di komputer Anda.
     npm install
     ```
 
-3.  **Setup Environment Variables**
-    Buat file `.env.local` dan tambahkan URL Google Apps Script Anda (lihat panduan GAS):
+3.  **Setup Environment**
+    Buat file `.env.local` dan tambahkan URL API Google Apps Script (Opsional untuk fitur save):
     ```env
-    NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/ID_SCRIPT_KAMU/exec
+    NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
     ```
 
-4.  **Jalankan Server**
+4.  **Jalankan Mode Development**
     ```bash
     npm run dev
     ```
-    Buka [http://localhost:3000](http://localhost:3000) di browser.
+    Buka `http://localhost:3000` di browser.
 
 ---
 
-## 🌐 Panduan Deployment
+## 👨‍💻 Developer Credit
 
-### 1. Google Apps Script (Backend)
-Backend Google Sheets wajib di-deploy terlebih dahulu.
-👉 **[BACA PANDUAN LENGKAP DEPLOY GAS DISINI](DEPLOY_GAS.md)**
+Project ini dirancang dan dikembangkan sepenuhnya oleh:
 
-### 2. Vercel (Frontend)
-Aplikasi ini siap di-deploy ke Vercel dengan mudah:
-1.  Push kode ke GitHub.
-2.  Import project di Dashboard Vercel.
-3.  Masukkan `NEXT_PUBLIC_GAS_URL` di menu **Environment Variables**.
-4.  Deploy! 🚀
+**Mang Do-san**
+*IT Consultant | Fullstack Web Developer*
+
+> "Building digital solutions that empower businesses."
 
 ---
-
-## 👨‍💻 Author
-
-Dikembangkan dengan ❤️ dan ☕ untuk **PT. Tunggal Mandiri Logistik**.
-
----
-*© 2026 Smart Trucking Invoice System. Private Property.*
+*© 2026 Smart Trucking Invoice System. All Rights Reserved.*
