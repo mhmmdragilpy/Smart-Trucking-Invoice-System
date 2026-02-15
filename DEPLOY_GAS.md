@@ -48,4 +48,15 @@ This guide explains how to set up the backend for your **Smart Trucking Invoice 
     -   **Value**: (Paste the Web App URL you just copied)
 3.  Save and Redeploy Vercel.
 
+## 6. Troubleshooting
+
+### Error: `Invalid argument: id` (in `initDatabase`)
+-   **Cause**: You forgot to fill in the `SPREADSHEET_ID` in Line 10.
+-   **Fix**:
+    1.  Open your Google Sheet.
+    2.  Copy the long ID from the URL (between `/d/` and `/edit`).
+        -   Example: `https://docs.google.com/spreadsheets/d/`**`1BxiMVs0XRA5nFMdKbBdBZjgmUUqptnbsCnWDfKTNZTk`**`/edit`
+    3.  Paste it into the code: `const SPREADSHEET_ID = '1Bxi...';`.
+    4.  Save and run again.
+
 🎉 **Done!** Your invoices will now automatically save to your Google Sheet!
