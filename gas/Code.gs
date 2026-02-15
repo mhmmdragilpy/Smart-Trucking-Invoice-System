@@ -59,6 +59,26 @@ function initDatabase() {
     counterSheet.getRange('1:1').setFontWeight('bold');
   }
 
+  // 4. Master Data: Customers (Future Proofing)
+  var customerSheet = ss.getSheetByName('Customers');
+  if (!customerSheet) {
+    customerSheet = ss.insertSheet('Customers');
+    customerSheet.appendRow(['CustomerName', 'Address', 'NPWP', 'PIC', 'Phone']);
+    customerSheet.getRange('1:1').setFontWeight('bold');
+  }
+
+  // 5. Master Data: Price List (Future Proofing)
+  var priceSheet = ss.getSheetByName('PriceList');
+  if (!priceSheet) {
+    priceSheet = ss.insertSheet('PriceList');
+    priceSheet.appendRow(['Destination', 'VehicleSize', 'Price', 'Description']);
+    priceSheet.getRange('1:1').setFontWeight('bold');
+  }
+
+  // Cleanup default Sheet1 if exists
+  var defaultSheet = ss.getSheetByName('Sheet1');
+  if (defaultSheet) ss.deleteSheet(defaultSheet);
+
   Logger.log('Database initialized successfully.');
 }
 
