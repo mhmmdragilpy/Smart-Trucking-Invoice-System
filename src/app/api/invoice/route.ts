@@ -24,9 +24,18 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify(payload),
         });
 
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('GAS Error (Non-JSON):', text);
+            throw new Error(`Google Apps Script returned an error (likely HTML). Make sure the script is deployed correctly and the URL is valid. Response prefix: ${text.substring(0, 100)}...`);
+        }
+
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error('API Error:', error);
         return NextResponse.json(
             { success: false, error: (error as Error).message },
             { status: 500 }

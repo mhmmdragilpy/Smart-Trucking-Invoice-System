@@ -21,93 +21,104 @@ function jsonResponse(data) {
 
 // ── Initialize Database (run once) ────────────────────────────
 function initDatabase() {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-
-  // 1. Master Sheet (Headers)
-  var txSheet = ss.getSheetByName(SHEET_TRANSACTIONS);
-  if (!txSheet) {
-    txSheet = ss.insertSheet(SHEET_TRANSACTIONS);
-    txSheet.appendRow([
-      'InvoiceNumber', 'CustomerName', 'SchemaType', 'BankGroup',
-      'InvoiceDate', 'PeriodeStart', 'PeriodeEnd',
-      'RowData_JSON', 'TotalAmount', 'Terbilang', 'CreatedAt'
-    ]);
-    txSheet.getRange('1:1').setFontWeight('bold');
-    txSheet.setFrozenRows(1);
+  if (!SPREADSHEET_ID) {
+    Logger.log('ERROR: SPREADSHEET_ID is not set.');
+    return;
   }
+  
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  // 2. Detail Sheet (Items)
-  var itemSheet = ss.getSheetByName(SHEET_ITEMS);
-  if (!itemSheet) {
-    itemSheet = ss.insertSheet(SHEET_ITEMS);
-    itemSheet.appendRow([
-      'InvoiceNumber', 'No', 'Tanggal', 'Consignee', 
-      'NoMobil', 'NoContainer', 'Tujuan', 'Depo', 'Status', 'Size', 'PickUp',
-      'Harga', 'GatePass', 'LiftOff', 'Bongkar', 'Cleaning', 
-      'Stuffing', 'Storage', 'Demurrage', 'Seal', 'Others'
-    ]);
-    itemSheet.getRange('1:1').setFontWeight('bold');
-    itemSheet.setFrozenRows(1);
+    // 1. Master Sheet (Headers)
+    var txSheet = ss.getSheetByName(SHEET_TRANSACTIONS);
+    if (!txSheet) {
+      txSheet = ss.insertSheet(SHEET_TRANSACTIONS);
+      txSheet.appendRow([
+        'InvoiceNumber', 'CustomerName', 'SchemaType', 'BankGroup',
+        'InvoiceDate', 'PeriodeStart', 'PeriodeEnd',
+        'RowData_JSON', 'TotalAmount', 'Terbilang', 'CreatedAt'
+      ]);
+      txSheet.getRange('1:1').setFontWeight('bold');
+      txSheet.setFrozenRows(1);
+    }
+
+    // 2. Detail Sheet (Items)
+    var itemSheet = ss.getSheetByName(SHEET_ITEMS);
+    if (!itemSheet) {
+      itemSheet = ss.insertSheet(SHEET_ITEMS);
+      itemSheet.appendRow([
+        'InvoiceNumber', 'No', 'Tanggal', 'Consignee', 
+        'NoMobil', 'NoContainer', 'Tujuan', 'Depo', 'Status', 'Size', 'PickUp',
+        'Harga', 'GatePass', 'LiftOff', 'Bongkar', 'Cleaning', 
+        'Stuffing', 'Storage', 'Demurrage', 'Seal', 'Others'
+      ]);
+      itemSheet.getRange('1:1').setFontWeight('bold');
+      itemSheet.setFrozenRows(1);
+    }
+
+    // 3. Counter Sheet
+    var counterSheet = ss.getSheetByName(SHEET_COUNTER);
+    if (!counterSheet) {
+      counterSheet = ss.insertSheet(SHEET_COUNTER);
+      counterSheet.appendRow(['Year', 'LastNumber']);
+      counterSheet.appendRow([new Date().getFullYear(), 0]);
+      counterSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // 4. Master Data: Customers (Future Proofing)
+    var customerSheet = ss.getSheetByName('Customers');
+    if (!customerSheet) {
+      customerSheet = ss.insertSheet('Customers');
+      customerSheet.appendRow(['CustomerName', 'Address', 'NPWP', 'PIC', 'Phone']);
+      customerSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // 5. Master Data: Price List
+    var priceSheet = ss.getSheetByName('PriceList');
+    if (!priceSheet) {
+      priceSheet = ss.insertSheet('PriceList');
+      priceSheet.appendRow(['Destination', 'VehicleSize', 'Price', 'Description']);
+      priceSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // 6. Master Data: Drivers (Complete Data)
+    var driverSheet = ss.getSheetByName('Drivers');
+    if (!driverSheet) {
+      driverSheet = ss.insertSheet('Drivers');
+      driverSheet.appendRow(['DriverName', 'Phone', 'LicenseNumber', 'Status']);
+      driverSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // 7. Master Data: Vehicles (Complete Data)
+    var vehicleSheet = ss.getSheetByName('Vehicles');
+    if (!vehicleSheet) {
+      vehicleSheet = ss.insertSheet('Vehicles');
+      vehicleSheet.appendRow(['PlateNumber', 'Type', 'STNK_Expiry', 'KIR_Expiry', 'Status']);
+      vehicleSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // 8. System Logs (Audit Trail)
+    var logSheet = ss.getSheetByName('SystemLogs');
+    if (!logSheet) {
+      logSheet = ss.insertSheet('SystemLogs');
+      logSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserEmail']);
+      logSheet.getRange('1:1').setFontWeight('bold');
+    }
+
+    // Cleanup default Sheet1 if exists
+    var defaultSheet = ss.getSheetByName('Sheet1');
+    if (defaultSheet) ss.deleteSheet(defaultSheet);
+
+    Logger.log('Database initialized successfully.');
+  } catch (e) {
+    Logger.log('Error initializing database: ' + e.toString());
   }
-
-  // 3. Counter Sheet
-  var counterSheet = ss.getSheetByName(SHEET_COUNTER);
-  if (!counterSheet) {
-    counterSheet = ss.insertSheet(SHEET_COUNTER);
-    counterSheet.appendRow(['Year', 'LastNumber']);
-    counterSheet.appendRow([new Date().getFullYear(), 0]);
-    counterSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // 4. Master Data: Customers (Future Proofing)
-  var customerSheet = ss.getSheetByName('Customers');
-  if (!customerSheet) {
-    customerSheet = ss.insertSheet('Customers');
-    customerSheet.appendRow(['CustomerName', 'Address', 'NPWP', 'PIC', 'Phone']);
-    customerSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // 5. Master Data: Price List
-  var priceSheet = ss.getSheetByName('PriceList');
-  if (!priceSheet) {
-    priceSheet = ss.insertSheet('PriceList');
-    priceSheet.appendRow(['Destination', 'VehicleSize', 'Price', 'Description']);
-    priceSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // 6. Master Data: Drivers (Complete Data)
-  var driverSheet = ss.getSheetByName('Drivers');
-  if (!driverSheet) {
-    driverSheet = ss.insertSheet('Drivers');
-    driverSheet.appendRow(['DriverName', 'Phone', 'LicenseNumber', 'Status']);
-    driverSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // 7. Master Data: Vehicles (Complete Data)
-  var vehicleSheet = ss.getSheetByName('Vehicles');
-  if (!vehicleSheet) {
-    vehicleSheet = ss.insertSheet('Vehicles');
-    vehicleSheet.appendRow(['PlateNumber', 'Type', 'STNK_Expiry', 'KIR_Expiry', 'Status']);
-    vehicleSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // 8. System Logs (Audit Trail)
-  var logSheet = ss.getSheetByName('SystemLogs');
-  if (!logSheet) {
-    logSheet = ss.insertSheet('SystemLogs');
-    logSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserEmail']);
-    logSheet.getRange('1:1').setFontWeight('bold');
-  }
-
-  // Cleanup default Sheet1 if exists
-  var defaultSheet = ss.getSheetByName('Sheet1');
-  if (defaultSheet) ss.deleteSheet(defaultSheet);
-
-  Logger.log('Database initialized successfully.');
 }
 
 // ── Auto-Increment Invoice Number (atomic on server) ──────────
 function getNextInvoiceNumber() {
+  if (!SPREADSHEET_ID) throw new Error("SPREADSHEET_ID is not configured.");
+  
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(SHEET_COUNTER);
   var currentYear = new Date().getFullYear();
@@ -137,6 +148,7 @@ function getNextInvoiceNumber() {
 
 // ── Helper: Log Action ────────────────────────────────────────
 function logAction(action, details) {
+  if (!SPREADSHEET_ID) return;
   try {
     var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     var sheet = ss.getSheetByName('SystemLogs');
@@ -150,6 +162,10 @@ function logAction(action, details) {
 
 // ── doPost — Save Master & Detail Data ────────────────────────
 function doPost(e) {
+  if (!SPREADSHEET_ID) {
+    return jsonResponse({ success: false, error: "Configuration Error: SPREADSHEET_ID is empty in Code.gs. Please set it and redeploy." });
+  }
+
   try {
     var payload = JSON.parse(e.postData.contents);
 
@@ -228,6 +244,10 @@ function doPost(e) {
 
 // ── doGet — Return ALL Transactions as JSON ───────────────────
 function doGet() {
+  if (!SPREADSHEET_ID) {
+    return jsonResponse({ success: false, error: "Configuration Error: SPREADSHEET_ID is empty in Code.gs. Please set it and redeploy." });
+  }
+
   try {
     var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     var sheet = ss.getSheetByName(SHEET_TRANSACTIONS);
@@ -255,3 +275,4 @@ function doGet() {
     return jsonResponse({ success: false, error: error.toString() });
   }
 }
+
