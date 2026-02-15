@@ -10,8 +10,6 @@
 
 Dibuat sebagai solusi ERP mini yang *scalable*, aman, dan mudah digunakan.
 
-![Dashboard Preview](public/logo-full.png)
-
 ---
 
 ## 🚀 Tech Stack
@@ -112,4 +110,3 @@ Project ini didistribusikan di bawah lisensi MIT. Lihat file `LICENSE` untuk inf
 ## 👤 Author
 
 Developed with ❤️ and ☕ by **Mang Do-san**
-*(IT Consultant & Fullstack Web Developer)*
