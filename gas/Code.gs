@@ -67,12 +67,36 @@ function initDatabase() {
     customerSheet.getRange('1:1').setFontWeight('bold');
   }
 
-  // 5. Master Data: Price List (Future Proofing)
+  // 5. Master Data: Price List
   var priceSheet = ss.getSheetByName('PriceList');
   if (!priceSheet) {
     priceSheet = ss.insertSheet('PriceList');
     priceSheet.appendRow(['Destination', 'VehicleSize', 'Price', 'Description']);
     priceSheet.getRange('1:1').setFontWeight('bold');
+  }
+
+  // 6. Master Data: Drivers (Complete Data)
+  var driverSheet = ss.getSheetByName('Drivers');
+  if (!driverSheet) {
+    driverSheet = ss.insertSheet('Drivers');
+    driverSheet.appendRow(['DriverName', 'Phone', 'LicenseNumber', 'Status']);
+    driverSheet.getRange('1:1').setFontWeight('bold');
+  }
+
+  // 7. Master Data: Vehicles (Complete Data)
+  var vehicleSheet = ss.getSheetByName('Vehicles');
+  if (!vehicleSheet) {
+    vehicleSheet = ss.insertSheet('Vehicles');
+    vehicleSheet.appendRow(['PlateNumber', 'Type', 'STNK_Expiry', 'KIR_Expiry', 'Status']);
+    vehicleSheet.getRange('1:1').setFontWeight('bold');
+  }
+
+  // 8. System Logs (Audit Trail)
+  var logSheet = ss.getSheetByName('SystemLogs');
+  if (!logSheet) {
+    logSheet = ss.insertSheet('SystemLogs');
+    logSheet.appendRow(['Timestamp', 'Action', 'Details', 'UserEmail']);
+    logSheet.getRange('1:1').setFontWeight('bold');
   }
 
   // Cleanup default Sheet1 if exists
@@ -109,6 +133,19 @@ function getNextInvoiceNumber() {
 
   var paddedNumber = ('0000' + lastNumber).slice(-4);
   return paddedNumber + '/TML/IMP/' + currentYear;
+}
+
+// ── Helper: Log Action ────────────────────────────────────────
+function logAction(action, details) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('SystemLogs');
+    if (sheet) {
+      sheet.appendRow([new Date(), action, details, Session.getActiveUser().getEmail()]);
+    }
+  } catch (e) {
+    // Ignore logging errors to prevent blocking main flow
+  }
 }
 
 // ── doPost — Save Master & Detail Data ────────────────────────
@@ -175,12 +212,16 @@ function doPost(e) {
       itemSheet.getRange(lastRow + 1, 1, itemRows.length, itemRows[0].length).setValues(itemRows);
     }
 
+    // 3. Log the action
+    logAction('CREATE_INVOICE', 'Invoice created: ' + invoiceNumber);
+
     return jsonResponse({
       success: true,
       invoiceNumber: invoiceNumber
     });
 
   } catch (error) {
+    logAction('ERROR', error.toString());
     return jsonResponse({ success: false, error: error.toString() });
   }
 }
