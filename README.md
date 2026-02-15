@@ -1,93 +1,115 @@
-# 🚛 Smart Trucking Invoice System
+# Smart Trucking Invoice System
 
-**Smart Trucking Invoice System** adalah solusi digital modern yang dirancang untuk mengotomatisasi proses *invoicing* dan manajemen data logistik. Aplikasi ini mengubah alur kerja manual berbasis Excel menjadi sistem berbasis web yang efisien, terintegrasi, dan *scalable*.
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Next.js](https://img.shields.io/badge/Next.js-15.0-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-Dikembangkan oleh **Mang Do-san** (IT Consultant & Web Developer) sebagai solusi *Enterprise Resource Planning* (ERP) mini untuk sektor logistik.
+**Smart Trucking Invoice System** adalah platform manajemen invoice logistik modern yang dirancang untuk efisiensi tinggi. Aplikasi ini mendigitalkan seluruh alur kerja penagihan, mulai dari input data perjalanan, kalkulasi biaya otomatis, hingga pembuatan dokumen PDF siap cetak dengan tanda tangan digital.
+
+Dibuat sebagai solusi ERP mini yang *scalable*, aman, dan mudah digunakan.
 
 ![Dashboard Preview](public/logo-full.png)
 
-## 🌟 Overview Project
+---
 
-Sistem ini dibangun untuk mengatasi kompleksitas penagihan di industri trucking yang melibatkan banyak variabel (biaya lift-off, gate pass, cleaning, storage, dll). Dengan antarmuka yang intuitif dan *backend* yang ringan menggunakan Google Sheets, aplikasi ini menawarkan keseimbangan sempurna antara performa dan kemudahan penggunaan.
+## 🚀 Tech Stack
 
-## ✨ Fitur Unggulan
+Project ini dibangun menggunakan teknologi terkini untuk memastikan performa yang cepat, aman, dan mudah dikembangkan.
 
-### 1. Advanced Invoice Management
--   **Multi-Schema Support**: Mendukung 16+ jenis skema penagihan yang berbeda dalam satu platform.
--   **Dynamic Auto-Numbering**: Sistem penomoran cerdas dengan format custom (e.g., `INV/YYYY/MM/XXX`).
--   **Smart Auto-Complete**:
-    -   Database Consignee & Customer terpusat.
-    -   Riwayat Kendaraan & Kontainer otomatis tersimpan.
-    -   *Price Logic*: Otomatisasi harga berdasarkan rute (Single/Multi rate).
-
-### 2. High-Performance Financial Tools
--   **Real-time Calculation**: Kalkulasi otomatis untuk PPN, PPh, dan total biaya logistik.
--   **Auto-Formatting**: Input mata uang dengan *locale* Indonesia (`Rp 1.000.000`) untuk mencegah human error.
--   **Interactive Data Grid**: Tabel data responsif dengan fitur *summary row* untuk total per kolom.
-
-### 3. Client-Side PDF Generation
--   **Fast & Secure**: Pembuatan PDF dilakukan di sisi klien (browser) menggunakan `@react-pdf/renderer` tanpa membebani server.
--   **Digital Signing**: Integrasi tanda tangan digital QR/Image pada dokumen invoice.
--   **Professional Layout**: Desain invoice standar industri yang siap cetak (A4).
-
-### 4. Serverless Backend (Google Apps Script)
--   **Cost-Effective**: Menggunakan Google Sheets sebagai database (NoSQL-like) melalui Google Apps Script.
--   **Real-time Sync**: Data invoice tersimpan otomatis dan dapat diakses kapan saja untuk keperluan audit/rekap.
--   **Master-Detail Architecture**: Struktur data terpisah untuk *Header* (Transaksi) dan *Detail* (Item) demi integritas data.
+| Category | Technology | Description |
+|----------|------------|-------------|
+| **Frontend** | [Next.js 15 (App Router)](https://nextjs.org/) | Framework React modern untuk server-side rendering dan performa optimal. |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | Superset JavaScript dengan static typing untuk keamanan kode dan skalabilitas. |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | Utility-first CSS framework untuk desain antarmuka yang cepat dan responsif. |
+| **UI Components** | [Shadcn UI](https://ui.shadcn.com/) | Komponen UI yang dapat dikustomisasi dan aksesibel. |
+| **PDF Engine** | [@react-pdf/renderer](https://react-pdf.org/) | Pembuatan dokumen PDF performa tinggi langsung di sisi klien (browser). |
+| **Icons** | [Lucide React](https://lucide.dev/) | Koleksi icon yang bersih, konsisten, dan ringan. |
+| **Backend API** | [Google Apps Script](https://developers.google.com/apps-script) | Serverless backend yang memanfaatkan Google Sheets sebagai database yang hemat biaya. |
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Fitur Utama
 
-Dibangun dengan teknologi terkini untuk menjamin kecepatan, keamanan, dan skalabilitas:
+Berikut adalah fitur-fitur unggulan yang telah diimplementasikan:
 
--   **Frontend**: [Next.js 15](https://nextjs.org/) (App Router), [React](https://react.dev/)
--   **Language**: [TypeScript](https://www.typescriptlang.org/) for Type Safety
--   **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
--   **PDF Generation**: [@react-pdf/renderer](https://react-pdf.org/)
--   **Icons**: [Lucide React](https://lucide.dev/)
--   **Utilities**: `zod` (Validation), `clsx` (Class handling)
--   **Backend**: Google Apps Script (GAS) API
-
----
-
-## 🚀 Instalasi & Pengembangan
-
-Tertarik mempelajari kode sumbernya? Ikuti langkah berikut:
-
-1.  **Clone Repository**
-    ```bash
-    git clone https://github.com/mhmmdragilpy/Smart-Trucking-Invoice-System.git
-    cd invoice-app
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Setup Environment**
-    Buat file `.env.local` dan tambahkan URL API Google Apps Script (Opsional untuk fitur save):
-    ```env
-    NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
-    ```
-
-4.  **Jalankan Mode Development**
-    ```bash
-    npm run dev
-    ```
-    Buka `http://localhost:3000` di browser.
+-   **Manajemen Invoice Komprehensif**: Mendukung 16+ jenis skema invoice logistik dengan fleksibilitas tinggi.
+-   **Intelligent Automation**:
+    -   **Dynamic Numbering**: Penomoran invoice otomatis (`INV/YYYY/MM/XXX`).
+    -   **Smart Auto-Complete**: Saran otomatis untuk data pelanggan, kendaraan, dan rute berdasarkan riwayat.
+    -   **Price Logic**: Penentuan harga otomatis berdasarkan rute dan jenis layanan.
+-   **Financial Accuracy**:
+    -   **Auto-Formatting**: Input mata uang yang diformat otomatis (`Rp 1.000.000`) meminimalkan kesalahan input.
+    -   **Real-time Calculation**: Perhitungan otomatis untuk PPN, PPh, dan total biaya operasional.
+-   **Document Generation**:
+    -   **Instant PDF**: Cetak invoice dalam hitungan detik.
+    -   **Digital Signature**: Integrasi tanda tangan QR/Digital untuk otentikasi dokumen.
+-   **Data Reliability**: Struktur data Master-Detail yang tersimpan aman di cloud (Google Sheets) untuk kemudahan audit.
 
 ---
 
-## 👨‍💻 Developer Credit
+## 🛠️ Prerequisites
 
-Project ini dirancang dan dikembangkan sepenuhnya oleh:
+Sebelum memulai, pastikan Anda telah menginstal tools berikut di komputer Anda:
 
-**Mang Do-san**
-*IT Consultant | Fullstack Web Developer*
-
-> "Building digital solutions that empower businesses."
+-   **Node.js**: Versi 18.x atau lebih baru.
+-   **npm**: Package manager standar Node.js.
+-   **Git**: Untuk manajemen versi source code.
 
 ---
-*© 2026 Smart Trucking Invoice System. All Rights Reserved.*
+
+## 📦 Installation & Getting Started
+
+Ikuti langkah-langkah berikut untuk menjalankan project ini di environment lokal Anda.
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/mhmmdragilpy/Smart-Trucking-Invoice-System.git
+cd invoice-app
+```
+
+### 2. Install Dependencies
+Install semua library yang dibutuhkan menggunakan npm:
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+Buat file `.env.local` di root directory project Anda untuk konfigurasi API Backend (Google Apps Script).
+```env
+NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+```
+
+### 4. Menjalankan Development Server
+Jalankan server lokal dalam mode development:
+```bash
+npm run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk melihat hasilnya.
+
+---
+
+## 🤝 Contributing
+
+Kontribusi sangat diterima untuk pengembangan fitur lebih lanjut.
+
+1.  Fork repository ini.
+2.  Buat branch fitur baru (`git checkout -b feature/AmazingFeature`).
+3.  Commit perubahan Anda (`git commit -m 'Add some AmazingFeature'`).
+4.  Push ke branch tersebut (`git push origin feature/AmazingFeature`).
+5.  Buat Pull Request.
+
+---
+
+## 📄 License
+
+Project ini didistribusikan di bawah lisensi MIT. Lihat file `LICENSE` untuk informasi lebih lanjut.
+
+---
+
+## 👤 Author
+
+Developed with ❤️ and ☕ by **Mang Do-san**
+*(IT Consultant & Fullstack Web Developer)*
