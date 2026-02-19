@@ -3,9 +3,12 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import bcrypt from 'bcryptjs';
+
 const ADMIN_USER = {
     username: 'admin',
-    password: 'admintml', // Hardcoded as requested
+    // Hashed password
+    passwordHash: '$2b$10$oyLKap3LJaVPJxvx2kemleES8zr6KQI3hV2VnltfcKhxvEx75DWNK',
     name: 'Admin User',
 };
 
@@ -15,7 +18,9 @@ export async function loginAction(formData: FormData) {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
 
-    if (username === ADMIN_USER.username && password === ADMIN_USER.password) {
+    const isPasswordValid = await bcrypt.compare(password, ADMIN_USER.passwordHash);
+
+    if (username === ADMIN_USER.username && isPasswordValid) {
         // Set HTTP-only cookie
         const cookieStore = await cookies();
         cookieStore.set(SESSION_COOKIE_NAME, 'authenticated', {

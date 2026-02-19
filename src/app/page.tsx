@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RecentInvoices } from '@/components/RecentInvoices';
+import { InvoiceStatsCharts } from '@/components/dashboard/InvoiceStatsCharts';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -124,6 +125,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
       </div>
+
+      {/* ── Charts Section ──────────────────────────────────── */}
+      <InvoiceStatsCharts />
 
       {/* ── Recent Invoices ─────────────────────────────────── */}
       <RecentInvoices />

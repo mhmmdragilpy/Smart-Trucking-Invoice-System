@@ -1,65 +1,85 @@
 # Smart Trucking Invoice System
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Next.js](https://img.shields.io/badge/Next.js-15.0-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)
+![Next.js](https://img.shields.io/badge/Next.js-16.1-black)
+![Supabase](https://img.shields.io/badge/Supabase-Database-green)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-**Smart Trucking Invoice System** adalah platform manajemen invoice logistik modern yang dirancang untuk efisiensi tinggi. Aplikasi ini mendigitalkan seluruh alur kerja penagihan, mulai dari input data perjalanan, kalkulasi biaya otomatis, hingga pembuatan dokumen PDF siap cetak dengan tanda tangan digital.
+**Smart Trucking Invoice System** adalah platform manajemen invoice logistik modern yang dirancang khusus untuk menangani kompleksitas dokumen logistik. Sistem ini mendigitalkan seluruh alur kerja penagihan, mulai dari input data perjalanan, kalkulasi biaya otomatis, hingga pembuatan dokumen PDF siap cetak, menggantikan proses manual yang rentan kesalahan.
 
-Dibuat sebagai solusi ERP mini yang *scalable*, aman, dan mudah digunakan.
+Dikembangkan sebagai solusi "Tailor-Made" yang memahami bahasa bisnis trucking, sistem ini menawarkan efisiensi administrasi hingga 80%.
+
+---
+
+## ✨ Fitur Unggulan
+
+Berikut adalah fitur-fitur utama yang membuat sistem ini berbeda:
+
+### 1. Manajemen Invoice Komprehensif (16+ Tipe)
+Mendukung berbagai format tagihan logistik dengan kolom yang menyesuaikan otomatis:
+-   Import & Export
+-   Fee Mode
+-   Transport
+-   Refund
+-   Dan banyak lagi.
+
+### 2. Kalkulasi Cerdas & Otomatis
+Lupakan kalkulator manual. Sistem menangani perhitungan kompleks secara instan:
+-   Perhitungan Total, DP, dan Sisa Tagihan.
+-   Kalkulasi Potongan Fee otomatis.
+-   Fitur "Terbilang" otomatis untuk jumlah uang.
+-   Minimalisir *human error* dalam perhitungan keuangan.
+
+### 3. PDF Generator Pro
+Cetak invoice standar industri (A4) dalam satu klik:
+-   Format rapi dan profesional.
+-   Siap kirim ke klien.
+-   Mendukung cetak massal.
+
+### 4. Rekapitulasi Sentral & Cloud Access 24/7
+-   Semua data tersimpan aman di cloud (Supabase/PostgreSQL).
+-   Pencarian invoice lama dalam hitungan detik.
+-   Akses dari mana saja (Laptop, Tablet, HP) tanpa instalasi aplikasi tambahan.
+
+### 5. Integrasi AI & Teknologi Modern
+-   Dibangun dengan **Next.js 16** dan **React 19** untuk performa maksimal.
+-   Integrasi **Google Generative AI** untuk fitur cerdas masa depan.
+-   Autentikasi aman menggunakan **Better Auth**.
 
 ---
 
 ## 🚀 Tech Stack
 
-Project ini dibangun menggunakan teknologi terkini untuk memastikan performa yang cepat, aman, dan mudah dikembangkan.
+Project ini dibangun menggunakan teknologi terkini untuk memastikan performa, keamanan, dan skalabilitas jangka panjang.
 
-| Category | Technology | Description |
+| Kategori | Teknologi | Deskripsi |
 |----------|------------|-------------|
-| **Frontend** | [Next.js 15 (App Router)](https://nextjs.org/) | Framework React modern untuk server-side rendering dan performa optimal. |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) | Superset JavaScript dengan static typing untuk keamanan kode dan skalabilitas. |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | Utility-first CSS framework untuk desain antarmuka yang cepat dan responsif. |
-| **UI Components** | [Shadcn UI](https://ui.shadcn.com/) | Komponen UI yang dapat dikustomisasi dan aksesibel. |
-| **PDF Engine** | [@react-pdf/renderer](https://react-pdf.org/) | Pembuatan dokumen PDF performa tinggi langsung di sisi klien (browser). |
-| **Icons** | [Lucide React](https://lucide.dev/) | Koleksi icon yang bersih, konsisten, dan ringan. |
-| **Backend API** | [Google Apps Script](https://developers.google.com/apps-script) | Serverless backend yang memanfaatkan Google Sheets sebagai database yang hemat biaya. |
+| **Frontend Framework** | [Next.js 16 (App Router)](https://nextjs.org/) | Framework React terbaru untuk performa dan SEO optimal. |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | Keamanan tipe data untuk kode yang lebih robust. |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Styling modern, cepat, dan responsif. |
+| **UI Components** | [Shadcn UI](https://ui.shadcn.com/) | Komponen antarmuka yang elegan dan aksesibel. |
+| **Database** | [Supabase](https://supabase.com/) | Database PostgreSQL berbasis cloud yang scalable. |
+| **ORM** | [Drizzle ORM](https://orm.drizzle.team/) | Interaksi database yang aman dan efisien (Type-safe). |
+| **Authentication** | [Better Auth](https://better-auth.com/) | Sistem autentikasi modern dan aman. |
+| **PDF Engine** | [@react-pdf/renderer](https://react-pdf.org/) | Pembuatan dokumen PDF performa tinggi di sisi klien. |
+| **AI Integration** | [Google AI SDK](https://sdk.vercel.ai/) | Integrasi kecerdasan buatan untuk fitur lanjutan. |
 
 ---
 
-## ✨ Fitur Utama
+## 🛠️ Persyaratan Sistem
 
-Berikut adalah fitur-fitur unggulan yang telah diimplementasikan:
+Sebelum memulai, pastikan Anda telah menginstal:
 
--   **Manajemen Invoice Komprehensif**: Mendukung 16+ jenis skema invoice logistik dengan fleksibilitas tinggi.
--   **Intelligent Automation**:
-    -   **Dynamic Numbering**: Penomoran invoice otomatis (`INV/YYYY/MM/XXX`).
-    -   **Smart Auto-Complete**: Saran otomatis untuk data pelanggan, kendaraan, dan rute berdasarkan riwayat.
-    -   **Price Logic**: Penentuan harga otomatis berdasarkan rute dan jenis layanan.
--   **Financial Accuracy**:
-    -   **Auto-Formatting**: Input mata uang yang diformat otomatis (`Rp 1.000.000`) meminimalkan kesalahan input.
-    -   **Real-time Calculation**: Perhitungan otomatis untuk PPN, PPh, dan total biaya operasional.
--   **Document Generation**:
-    -   **Instant PDF**: Cetak invoice dalam hitungan detik.
-    -   **Digital Signature**: Integrasi tanda tangan QR/Digital untuk otentikasi dokumen.
--   **Data Reliability**: Struktur data Master-Detail yang tersimpan aman di cloud (Google Sheets) untuk kemudahan audit.
+-   **Node.js**: Versi 20.x atau lebih baru.
+-   **npm** atau **pnpm**: Package manager.
+-   **Git**: Untuk manajemen versi.
 
 ---
 
-## 🛠️ Prerequisites
+## 📦 Instalasi & Cara Menjalankan
 
-Sebelum memulai, pastikan Anda telah menginstal tools berikut di komputer Anda:
-
--   **Node.js**: Versi 18.x atau lebih baru.
--   **npm**: Package manager standar Node.js.
--   **Git**: Untuk manajemen versi source code.
-
----
-
-## 📦 Installation & Getting Started
-
-Ikuti langkah-langkah berikut untuk menjalankan project ini di environment lokal Anda.
+Ikuti langkah-langkah berikut untuk menjalankan project ini di komputer lokal Anda.
 
 ### 1. Clone Repository
 ```bash
@@ -68,45 +88,66 @@ cd Smart-Trucking-Invoice-System
 ```
 
 ### 2. Install Dependencies
-Install semua library yang dibutuhkan menggunakan npm:
 ```bash
 npm install
+# atau
+pnpm install
 ```
 
-### 3. Setup Environment Variables
-Buat file `.env.local` di root directory project Anda untuk konfigurasi API Backend (Google Apps Script).
+### 3. Konfigurasi Environment Variables
+Salin file `.env.example` (jika ada) atau buat file `.env.local` baru dan isi konfigurasi berikut:
+
 ```env
-NEXT_PUBLIC_GAS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+# Database (Supabase)
+DATABASE_URL="postgresql://postgres.[YOUR-PROJECT]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"
+DIRECT_URL="postgresql://postgres.[YOUR-PROJECT]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
+
+# Supabase Client
+NEXT_PUBLIC_SUPABASE_URL=https://[YOUR-PROJECT].supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=[YOUR-ANON-KEY]
+
+# Authentication (Better Auth)
+BETTER_AUTH_SECRET=[YOUR-GENERATED-SECRET]
+BETTER_AUTH_URL=http://localhost:3000
+
+# AI SDK (Google)
+GOOGLE_GENERATIVE_AI_API_KEY=[YOUR-API-KEY]
 ```
 
-### 4. Menjalankan Development Server
-Jalankan server lokal dalam mode development:
+### 4. Setup Database
+Jalankan migrasi database menggunakan Drizzle Kit:
+```bash
+npm run db:push
+# atau command migrasi yang sesuai di package.json Anda
+```
+
+### 5. Jalankan Development Server
 ```bash
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk melihat hasilnya.
+Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk melihat aplikasi berjalan.
 
 ---
 
-## 🤝 Contributing
+## 🤝 Kontribusi
 
-Kontribusi sangat diterima untuk pengembangan fitur lebih lanjut.
+Kontribusi selalu diterima! Jika Anda ingin menambahkan fitur baru atau memperbaiki bug:
 
 1.  Fork repository ini.
-2.  Buat branch fitur baru (`git checkout -b feature/AmazingFeature`).
-3.  Commit perubahan Anda (`git commit -m 'Add some AmazingFeature'`).
-4.  Push ke branch tersebut (`git push origin feature/AmazingFeature`).
+2.  Buat branch fitur baru (`git checkout -b fitur/NamaFitur`).
+3.  Commit perubahan Anda (`git commit -m 'Menambahkan fitur baru'`).
+4.  Push ke branch (`git push origin fitur/NamaFitur`).
 5.  Buat Pull Request.
 
 ---
 
-## 📄 License
+## 📄 Lisensi
 
-Project ini didistribusikan di bawah lisensi MIT. Lihat file `LICENSE` untuk informasi lebih lanjut.
+Project ini dilindungi dan didistribusikan di bawah lisensi MIT.
 
 ---
 
 ## 👤 Author
 
-Developed with ❤️ and ☕ by **Mang Do-san**
+Developed by **mhmmdragilpy**
