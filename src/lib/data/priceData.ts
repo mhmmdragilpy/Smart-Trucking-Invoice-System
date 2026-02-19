@@ -211,6 +211,11 @@ export function lookupPrices(location: string, size?: string): number[] {
  * Format number as Indonesian Rupiah string.
  */
 export function formatRupiah(amount: number): string {
+    // Handle NaN, null, undefined, and other invalid values
+    if (typeof amount !== 'number' || isNaN(amount) || amount === null || amount === undefined) {
+        amount = 0;
+    }
+    
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',

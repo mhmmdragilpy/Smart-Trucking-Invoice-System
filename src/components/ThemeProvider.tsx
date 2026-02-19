@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useLayoutEffect, type ReactNode } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -19,34 +19,35 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setTheme] = useState<Theme>('dark');
-    const [mounted, setMounted] = useState(false);
-
-    // Read from localStorage on mount
-    useEffect(() => {
-        const stored = localStorage.getItem('tml-theme') as Theme | null;
-        if (stored === 'light' || stored === 'dark') {
-            setTheme(stored);
+    const [theme, setTheme] = useState<Theme>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('tml-theme') as Theme | null;
+            if (stored === 'light' || stored === 'dark') {
+                return stored;
+            }
         }
-        setMounted(true);
-    }, []);
-
-    // Apply theme class to <html>
+        return 'dark'; // Default for SSR
+    });
+    
     useEffect(() => {
-        if (!mounted) return;
         const root = document.documentElement;
         root.setAttribute('data-theme', theme);
         localStorage.setItem('tml-theme', theme);
-    }, [theme, mounted]);
+    }, [theme]);
 
     const toggleTheme = useCallback(() => {
-        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+        setTheme(prev => {
+            const newTheme = prev === 'dark' ? 'light' : 'dark';
+            // Also update the DOM immediately when toggling
+            const root = document.documentElement;
+            root.setAttribute('data-theme', newTheme);
+            localStorage.setItem('tml-theme', newTheme);
+            return newTheme;
+        });
     }, []);
 
-    // Prevent flash of wrong theme
-    if (!mounted) {
-        return <>{children}</>;
-    }
+    // For SSR, we don't need to worry about the flash since the theme will be applied on client side
+    // We can just return the children directly
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>

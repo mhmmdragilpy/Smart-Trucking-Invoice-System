@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
     INVOICE_TYPES,
     BANK_ACCOUNTS,
@@ -9,90 +10,173 @@ import {
     type InvoiceType,
     type ColumnDef,
 } from '@/lib/customerConfig';
-import { ALL_DESTINATIONS, lookupPrice, lookupPrices, formatRupiah } from '@/lib/priceDatabase';
+import { ALL_DESTINATIONS, lookupPrice, lookupPrices, formatRupiah } from '@/lib/data/priceData';
 import { useInvoiceCalculations } from '@/hooks/useInvoiceCalculations';
-import { Save, Plus, Trash2, AlertCircle, CheckCircle, FileDown, Tag } from 'lucide-react';
+import { Save, Plus, Trash2, AlertCircle, CheckCircle, FileDown, Tag, Loader2, ArrowLeft } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
-import { CONSIGNEES } from '@/lib/consignees';
-import { VEHICLES, CONTAINERS, GATE_PASS_OPTIONS } from '@/lib/referenceData';
+import { CONSIGNEES, VEHICLES, CONTAINERS, GATE_PASS_OPTIONS } from '@/lib/data/masterData';
+import { createInvoiceAction, updateInvoiceAction, getInvoiceByIdAction, getLatestInvoiceNumberAction } from '@/app/actions/invoices';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function InvoicePage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}>
+            <InvoiceEditor />
+        </Suspense>
+    );
+}
+
+function InvoiceEditor() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const editId = searchParams.get('id');
+    const isEditMode = !!editId;
+
     const [selectedType, setSelectedType] = useState<InvoiceType | null>(null);
     const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+    const [invoiceNumber, setInvoiceNumber] = useState('');
     const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
     const [periodeStart, setPeriodeStart] = useState('');
     const [periodeEnd, setPeriodeEnd] = useState('');
     const [dp, setDp] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isPdfGenerating, setIsPdfGenerating] = useState(false);
-    const [invoiceNumber, setInvoiceNumber] = useState('');
-    const [lastInvoiceNumber, setLastInvoiceNumber] = useState(''); // Keep for toast/history if needed
-    const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     // ── Payloads & Logic ──────────────────────────────────────
-    const { columns, bankInfo, isFee, grandTotal, jumlah, terbilangText } =
+    const { columns, isFee, grandTotal, jumlah, terbilangText } =
         useInvoiceCalculations(selectedType, rows, dp);
 
-    // ── Auto-Generate Invoice Number ──────────────────────────
+    // ── Load Invoice for Edit ─────────────────────────────────
     useEffect(() => {
-        // Fetch existing invoices to determine next number
-        const fetchLatest = async () => {
-            try {
-                const res = await fetch('/api/recap');
-                const json = await res.json();
-                if (json.success && Array.isArray(json.data)) {
-                    // Current Date Info
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = now.getMonth() + 1;
-                    const romanMonths = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-                    const romanJs = romanMonths[month];
+        if (!editId) return;
 
-                    // Filter invoices for current year/month to find max sequence
-                    // Format: TML/YYYY/MM/XXX e.g. TML/2026/II/001
-                    const prefix = `TML/${year}/${romanJs}/`;
+        const loadInvoice = async () => {
+            const result = await getInvoiceByIdAction(editId);
 
-                    let maxSeq = 0;
-                    json.data.forEach((inv: any) => {
-                        const num = inv.InvoiceNumber || '';
-                        if (num.startsWith(prefix)) {
-                            const seqPart = num.split('/').pop();
-                            const seq = parseInt(seqPart, 10);
-                            if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
-                        }
-                    });
+            if (!result.success || !result.data) {
+                toast.error('Invoice tidak ditemukan');
+                // Ensure rows are cleared if not found, or handle redirect
+                return;
+            }
 
-                    // Generate Next
-                    const nextSeq = String(maxSeq + 1).padStart(3, '0');
-                    setInvoiceNumber(`${prefix}${nextSeq}`);
-                }
-            } catch (e) {
-                console.error("Failed to fetch info for auto-numbering", e);
-                // Fallback
-                const now = new Date();
-                const roman = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][now.getMonth() + 1];
-                setInvoiceNumber(`TML/${now.getFullYear()}/${roman}/...`);
+            const invoiceData = result.data;
+
+            const type = INVOICE_TYPES.find(t => t.id === invoiceData.invoiceTypeId); // Drizzle returns camelCase
+            if (type) setSelectedType(type);
+
+            setInvoiceNumber(invoiceData.invoiceNumber);
+            setInvoiceDate(invoiceData.invoiceDate);
+            setPeriodeStart(invoiceData.periodStart || '');
+            setPeriodeEnd(invoiceData.periodEnd || '');
+            setDp(Number(invoiceData.dp) || 0);
+
+            if (invoiceData.items && Array.isArray(invoiceData.items)) {
+                // items from Drizzle query are already joined
+                const sortedItems = invoiceData.items.sort((a: any, b: any) => a.rowNumber - b.rowNumber);
+                const mappedRows = sortedItems.map((item: any) => ({
+                    no: item.rowNumber,
+                    tanggal: item.date,
+                    consigne: item.consignee,
+                    noMobil: item.vehicleNumber,
+                    noContainer: item.containerNumber,
+                    tujuan: item.destination,
+                    depo: item.depo,
+                    status: item.status,
+                    size: item.size,
+                    pickup: item.pickupLocation,
+                    smartDepo: item.smartDepo,
+                    emty: item.emty,
+                    harga: Number(item.price) || 0,
+                    gatePass: Number(item.gatePass) || 0,
+                    liftOff: Number(item.liftOff) || 0,
+                    bongkar: Number(item.bongkar) || 0,
+                    perbaikan: Number(item.perbaikan) || 0,
+                    parkir: Number(item.parkir) || 0,
+                    pmp: Number(item.pmp) || 0,
+                    repair: Number(item.repair) || 0,
+                    ngemail: Number(item.ngemail) || 0,
+                    rsm: Number(item.rsm) || 0,
+                    cleaning: Number(item.cleaning) || 0,
+                    stuffing: Number(item.stuffing) || 0,
+                    storage: Number(item.storage) || 0,
+                    demurrage: Number(item.demurrage) || 0,
+                    seal: Number(item.seal) || 0,
+                    others: Number(item.others) || 0,
+                }));
+                setRows(mappedRows);
             }
         };
 
-        fetchLatest();
-    }, []);
+        loadInvoice();
+    }, [editId]);
 
-    // ── Handle invoice type selection ─────────────────────────
+    // ── Auto-Numbering ────────────────────────────────────────
+    useEffect(() => {
+        if (isEditMode) return;
+        const fetchLatest = async () => {
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                const romanMonths = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+                const romanJs = romanMonths[month];
+                const prefix = `INV/TML/IMP/${year}/${romanJs}/`;
+
+                const result = await getLatestInvoiceNumberAction(prefix);
+
+                let nextSeq = '001';
+                if (result.success && result.data) {
+                    const lastNum = result.data.invoiceNumber;
+                    const parts = lastNum.split('/');
+                    const lastSeq = parseInt(parts[parts.length - 1], 10);
+                    if (!isNaN(lastSeq)) {
+                        nextSeq = String(lastSeq + 1).padStart(3, '0');
+                    }
+                }
+                setInvoiceNumber(`${prefix}${nextSeq}`);
+            } catch (e) {
+                console.error("Auto-number error", e);
+            }
+        };
+        fetchLatest();
+    }, [isEditMode]);
+
+    // ── Handlers ──────────────────────────────────────────────
     const handleTypeChange = useCallback((typeId: string) => {
         const id = Number(typeId);
         const invoiceType = INVOICE_TYPES.find((t) => t.id === id);
         if (invoiceType) {
             setSelectedType(invoiceType);
-            setRows([getDefaultRow(invoiceType, 1)]);
-            setDp(0);
+            if (!isEditMode && rows.length === 0) {
+                setRows([getDefaultRow(invoiceType, 1)]);
+            }
+            if (!isEditMode) setDp(0);
         } else {
             setSelectedType(null);
             setRows([]);
         }
-    }, []);
+    }, [isEditMode, rows.length]);
 
-    // ── Row management ────────────────────────────────────────
     const addRow = useCallback(() => {
         if (!selectedType) return;
         setRows((prev) => [...prev, getDefaultRow(selectedType, prev.length + 1)]);
@@ -110,71 +194,98 @@ export default function InvoicePage() {
             const newRows = [...prev];
             newRows[index] = { ...newRows[index], [key]: value };
 
-            // Auto-fill price when tujuan/size changes
             if (key === 'tujuan' || key === 'size') {
                 const tujuan = key === 'tujuan' ? (value as string) : (newRows[index].tujuan as string);
                 const size = key === 'size' ? (value as string) : (newRows[index].size as string);
                 const possiblePrices = lookupPrices(tujuan, size);
                 if (possiblePrices.length === 1) {
-                    // Exact match (only one option) -> Auto-fill
                     newRows[index] = { ...newRows[index], harga: possiblePrices[0] };
                 } else if (possiblePrices.length > 1) {
-                    // Multiple options -> Clear price to force selection from dropdown
                     newRows[index] = { ...newRows[index], harga: 0 };
                 } else {
-                    // No match -> Keep existing or clear? Let's clear if unknown destination
-                    // or maybe keep 0
                     if (key === 'tujuan') newRows[index] = { ...newRows[index], harga: 0 };
                 }
             }
-
             return newRows;
         });
     }, []);
 
-    // ── Submit ─────────────────────────────────────────────────
     const handleSubmit = async () => {
         if (!selectedType || rows.length === 0) return;
+        if (!invoiceNumber || !selectedType.customerName) {
+            toast.error('Data tidak lengkap (No Invoice / Customer)');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const payload = {
-                invoiceNumber, // [NEW]
-                invoiceTypeName: selectedType.name,
-                invoiceTypeId: selectedType.id,
-                bankGroup: selectedType.bankGroup,
-                isFee: selectedType.isFee,
-                invoiceDate,
-                periodeStart,
-                periodeEnd,
-                rows,
-                totalAmount: grandTotal,
+                invoice_number: invoiceNumber,
+                customer_name: selectedType.customerName,
+                invoice_type_id: selectedType.id,
+                invoice_type_name: selectedType.name,
+                bank_group: selectedType.bankGroup,
+                is_fee: selectedType.isFee,
+                invoice_date: invoiceDate,
+                period_start: periodeStart || null,
+                period_end: periodeEnd || null,
+                total_amount: grandTotal,
                 dp: isFee ? dp : 0,
-                jumlah: isFee ? jumlah : grandTotal,
+                grand_total: isFee ? jumlah : grandTotal,
                 terbilang: terbilangText,
+                items: rows.map(r => ({
+                    row_number: r.no,
+                    date: r.tanggal,
+                    consignee: r.consigne,
+                    vehicle_number: r.noMobil,
+                    container_number: r.noContainer,
+                    destination: r.tujuan,
+                    depo: r.depo,
+                    status: r.status,
+                    size: r.size,
+                    pickup_location: r.pickup,
+                    smart_depo: r.smartDepo,
+                    emty: r.emty,
+                    price: Number(r.harga) || 0,
+                    gate_pass: Number(r.gatePass) || 0,
+                    lift_off: Number(r.liftOff) || 0,
+                    bongkar: Number(r.bongkar) || 0,
+                    perbaikan: Number(r.perbaikan) || 0,
+                    parkir: Number(r.parkir) || 0,
+                    pmp: Number(r.pmp) || 0,
+                    repair: Number(r.repair) || 0,
+                    ngemail: Number(r.ngemail) || 0,
+                    rsm: Number(r.rsm) || 0,
+                    cleaning: Number(r.cleaning) || 0,
+                    stuffing: Number(r.stuffing) || 0,
+                    storage: Number(r.storage) || 0,
+                    demurrage: Number(r.demurrage) || 0,
+                    seal: Number(r.seal) || 0,
+                    others: Number(r.others) || 0,
+                }))
             };
 
-            const res = await fetch('/api/invoice', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                setLastInvoiceNumber(data.invoiceNumber);
-                setToast({ type: 'success', message: `Invoice ${data.invoiceNumber} berhasil disimpan!` });
+            let result;
+            if (isEditMode && editId) {
+                result = await updateInvoiceAction(editId, payload);
             } else {
-                setToast({ type: 'error', message: data.error || 'Gagal menyimpan invoice' });
+                result = await createInvoiceAction(payload);
             }
+
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+
+            toast.success(`Invoice ${invoiceNumber} berhasil disimpan!`);
+            setTimeout(() => router.push('/rekap'), 1500);
+
         } catch (err) {
-            setToast({ type: 'error', message: 'Network error: ' + (err as Error).message });
+            toast.error('Gagal menyimpan: ' + (err as Error).message);
         } finally {
             setIsSubmitting(false);
-            setTimeout(() => setToast(null), 4000);
         }
     };
 
-    // ── Generate PDF ──────────────────────────────────────────
     const handleDownloadPdf = async () => {
         if (!selectedType || rows.length === 0) return;
         setIsPdfGenerating(true);
@@ -200,48 +311,29 @@ export default function InvoicePage() {
             link.download = `Invoice_${selectedType.name.replace(/[^a-zA-Z0-9]/g, '_')}_${invoiceDate}.pdf`;
             link.click();
             URL.revokeObjectURL(url);
-            setToast({ type: 'success', message: 'PDF berhasil diunduh!' });
+            toast.success('PDF berhasil diunduh');
         } catch (err) {
-            setToast({ type: 'error', message: 'Gagal generate PDF: ' + (err as Error).message });
+            toast.error('Gagal generate PDF');
         } finally {
             setIsPdfGenerating(false);
-            setTimeout(() => setToast(null), 3000);
         }
     };
 
-    // ── Render cell input ─────────────────────────────────────
+    // ── Render Helpers ────────────────────────────────────────
     const renderCellInput = (col: ColumnDef, row: Record<string, unknown>, rowIndex: number) => {
         const value = row[col.key] ?? '';
 
-        switch (col.type) {
-            case 'number':
-                if (col.key === 'no') {
-                    return (
-                        <span style={{ textAlign: 'center', display: 'block', fontWeight: 600, color: 'var(--text-muted)' }}>
-                            {rowIndex + 1}
-                        </span>
-                    );
-                }
-                return (
-                    <input
-                        type="number"
-                        value={value as number}
-                        onChange={(e) => updateRow(rowIndex, col.key, Number(e.target.value) || 0)}
-                    />
-                );
+        if (col.key === 'no') {
+            return <div className="text-center font-bold text-slate-500">{rowIndex + 1}</div>;
+        }
 
-            case 'date':
-                return (
-                    <input
-                        type="date"
-                        value={value as string}
-                        onChange={(e) => updateRow(rowIndex, col.key, e.target.value)}
-                    />
-                );
+        const commonClasses = "h-8 text-xs"; // Compact inputs for table
 
-            case 'select':
-                return (
+        if (col.type === 'select') {
+            return (
+                <div className="min-w-[100px]">
                     <select
+                        className="flex h-8 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1 text-xs placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
                         value={value as string}
                         onChange={(e) => updateRow(rowIndex, col.key, e.target.value)}
                     >
@@ -250,420 +342,323 @@ export default function InvoicePage() {
                             <option key={opt} value={opt}>{opt}</option>
                         ))}
                     </select>
-                );
-
-            case 'currency':
-                // Check if we have multiple price options for this row's destination
-                const currentTujuan = (row['tujuan'] as string) || '';
-                const currentSize = (row['size'] as string) || '';
-                const priceOptions = currentTujuan ? lookupPrices(currentTujuan, currentSize) : [];
-
-                // Helper to format/parse
-                const displayValue = (value as number || '').toLocaleString('id-ID');
-
-                const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                    // Remove non-digits
-                    const raw = e.target.value.replace(/\D/g, '');
-                    const num = raw ? parseInt(raw, 10) : 0;
-                    updateRow(rowIndex, col.key, num);
-                };
-
-                return (
-                    <>
-                        <input
-                            type="text"
-                            className="currency-input"
-                            value={value ? displayValue : ''}
-                            placeholder="0"
-                            list={col.key === 'gatePass' ? `gatepass-${rowIndex}` : (col.key === 'harga' && priceOptions.length > 0 ? `prices-${rowIndex}` : undefined)}
-                            onChange={handleCurrencyChange}
-                        />
-                        {col.key === 'gatePass' && (
-                            <datalist id={`gatepass-${rowIndex}`}>
-                                {GATE_PASS_OPTIONS.map((gp) => (
-                                    <option key={gp} value={parseInt(gp).toLocaleString('id-ID')} />
-                                ))}
-                            </datalist>
-                        )}
-                        {col.key === 'harga' && priceOptions.length > 0 && (
-                            <datalist id={`prices-${rowIndex}`}>
-                                {priceOptions.map((p) => (
-                                    <option key={p} value={p.toLocaleString('id-ID')} />
-                                ))}
-                            </datalist>
-                        )}
-                    </>
-                );
-
-            case 'text':
-            default:
-                if (col.key === 'tujuan') {
-                    return (
-                        <>
-                            <input
-                                type="text"
-                                list={`destinations-${rowIndex}`}
-                                value={value as string}
-                                placeholder={col.label}
-                                onChange={(e) => updateRow(rowIndex, col.key, e.target.value.toUpperCase())}
-                            />
-                            <datalist id={`destinations-${rowIndex}`}>
-                                {ALL_DESTINATIONS.map((d) => (
-                                    <option key={d} value={d} />
-                                ))}
-                            </datalist>
-                        </>
-                    );
-                }
-                if (col.key === 'consigne') {
-                    return (
-                        <>
-                            <input
-                                type="text"
-                                list={`consignees-${rowIndex}`}
-                                value={value as string}
-                                placeholder={col.label}
-                                onChange={(e) => updateRow(rowIndex, col.key, e.target.value.toUpperCase())}
-                            />
-                            <datalist id={`consignees-${rowIndex}`}>
-                                {CONSIGNEES.map((c) => (
-                                    <option key={c} value={c} />
-                                ))}
-                            </datalist>
-                        </>
-                    );
-                }
-                if (col.key === 'noMobil') {
-                    return (
-                        <>
-                            <input
-                                type="text"
-                                list={`vehicles-${rowIndex}`}
-                                value={value as string}
-                                placeholder={col.label}
-                                onChange={(e) => updateRow(rowIndex, col.key, e.target.value.toUpperCase())}
-                            />
-                            <datalist id={`vehicles-${rowIndex}`}>
-                                {VEHICLES.map((v) => (
-                                    <option key={v} value={v} />
-                                ))}
-                            </datalist>
-                        </>
-                    );
-                }
-                if (col.key === 'noContainer') {
-                    return (
-                        <>
-                            <input
-                                type="text"
-                                list={`containers-${rowIndex}`}
-                                value={value as string}
-                                placeholder={col.label}
-                                onChange={(e) => updateRow(rowIndex, col.key, e.target.value.toUpperCase())}
-                            />
-                            <datalist id={`containers-${rowIndex}`}>
-                                {CONTAINERS.map((c) => (
-                                    <option key={c} value={c} />
-                                ))}
-                            </datalist>
-                        </>
-                    );
-                }
-                return (
-                    <input
-                        type="text"
-                        value={value as string}
-                        placeholder={col.label}
-                        onChange={(e) => updateRow(rowIndex, col.key, e.target.value)}
-                    />
-                );
+                </div>
+            );
         }
+
+        if (col.type === 'date') {
+            return (
+                <Input
+                    type="date"
+                    className={commonClasses}
+                    value={value as string}
+                    onChange={(e) => updateRow(rowIndex, col.key, e.target.value)}
+                />
+            );
+        }
+
+        if (col.type === 'currency' || col.type === 'number') {
+            const currentTujuan = (row['tujuan'] as string) || '';
+            const currentSize = (row['size'] as string) || '';
+            const priceOptions = col.key === 'harga' && currentTujuan ? lookupPrices(currentTujuan, currentSize) : [];
+
+            return (
+                <>
+                    <Input
+                        type="text"
+                        className={`${commonClasses} text-right font-mono`}
+                        value={value ? (value as number).toLocaleString('id-ID') : ''}
+                        placeholder="0"
+                        list={col.key === 'gatePass' ? `gatepass-${rowIndex}` : (col.key === 'harga' && priceOptions.length > 0 ? `prices-${rowIndex}` : undefined)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            updateRow(rowIndex, col.key, raw ? parseInt(raw, 10) : 0);
+                        }}
+                    />
+                    {col.key === 'gatePass' && (
+                        <datalist id={`gatepass-${rowIndex}`}>
+                            {GATE_PASS_OPTIONS.map((gp) => (
+                                <option key={gp} value={parseInt(gp).toLocaleString('id-ID')} />
+                            ))}
+                        </datalist>
+                    )}
+                    {col.key === 'harga' && priceOptions.length > 0 && (
+                        <datalist id={`prices-${rowIndex}`}>
+                            {priceOptions.map((p) => (
+                                <option key={p} value={p.toLocaleString('id-ID')} />
+                            ))}
+                        </datalist>
+                    )}
+                </>
+            );
+        }
+
+        // Default Text with Datalist support
+        let listId = undefined;
+        let options: string[] = [];
+
+        if (col.key === 'tujuan') { listId = `dest-${rowIndex}`; options = ALL_DESTINATIONS; }
+        if (col.key === 'consigne') { listId = `cons-${rowIndex}`; options = CONSIGNEES; }
+        if (col.key === 'noMobil') { listId = `veh-${rowIndex}`; options = VEHICLES; }
+        if (col.key === 'noContainer') { listId = `cont-${rowIndex}`; options = CONTAINERS; }
+
+        return (
+            <>
+                <Input
+                    type="text"
+                    className={commonClasses}
+                    value={value as string}
+                    onChange={(e) => updateRow(rowIndex, col.key, col.key === 'tujuan' || col.key.includes('no') ? e.target.value.toUpperCase() : e.target.value)}
+                    list={listId}
+                    placeholder={col.label}
+                />
+                {listId && (
+                    <datalist id={listId}>
+                        {options.map(opt => <option key={opt} value={opt} />)}
+                    </datalist>
+                )}
+            </>
+        );
     };
 
-
-
     return (
-        <>
-            {/* Toast */}
-            {toast && (
-                <div className={`toast ${toast.type}`}>
-                    {toast.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                    {' '}{toast.message}
-                </div>
-            )}
-
-            <div className="page-header">
-                <h1>Buat Invoice</h1>
-                <p>Pilih Tipe Invoice — kolom & template akan menyesuaikan otomatis</p>
-            </div>
-
-            {/* Invoice Type Selection */}
-            <div className="glass-card" style={{ marginBottom: '20px' }}>
-                <div className="form-row">
-                    <div className="form-group" style={{ minWidth: '200px' }}>
-                        <label className="form-label">No. Invoice (Auto)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={invoiceNumber}
-                            onChange={(e) => setInvoiceNumber(e.target.value)}
-                            placeholder="INV/YYYY/MM/..."
-                            style={{ fontFamily: 'monospace', fontWeight: 600 }}
-                        />
-                    </div>
-                    <div className="form-group" style={{ flex: 2 }}>
-                        <label className="form-label">
-                            <Tag size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-                            Tipe Invoice
-                        </label>
-                        <select
-                            className="form-select"
-                            value={selectedType?.id || ''}
-                            onChange={(e) => handleTypeChange(e.target.value)}
-                        >
-                            <option value="">— Pilih Tipe Invoice —</option>
-                            {INVOICE_TYPES.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Tanggal Invoice</label>
-                        <input
-                            type="date"
-                            className="form-input"
-                            value={invoiceDate}
-                            onChange={(e) => setInvoiceDate(e.target.value)}
-                        />
-                    </div>
-
+        <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/rekap')}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        {isEditMode ? 'Edit Invoice' : 'Buat Invoice Baru'}
+                    </h1>
+                    <p className="text-slate-500 text-sm">
+                        {isEditMode ? `Memperbarui invoice ${invoiceNumber}` : 'Isi form di bawah untuk membuat invoice baru.'}
+                    </p>
                 </div>
             </div>
 
-            {/* Type Badge */}
-            {selectedType && (
-                <div className="glass-card" style={{ padding: '12px 20px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span
-                            className="schema-badge"
-                            style={{
-                                background: isFee
-                                    ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                                    : 'linear-gradient(135deg, var(--primary-500), var(--primary-600))',
-                                color: '#fff',
-                                padding: '4px 12px',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                            }}
+            {/* Header Configuration */}
+            <Card className="border-t-4 border-t-blue-500 shadow-sm">
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-blue-500" /> Informasi Dasar
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-2">
+                        <Label>Tipe Invoice</Label>
+                        <Select
+                            value={selectedType?.id.toString() || ''}
+                            onValueChange={handleTypeChange}
+                            disabled={isEditMode}
                         >
-                            {selectedType.name}
-                        </span>
-                        {isFee && (
-                            <span style={{
-                                background: 'rgba(245, 158, 11, 0.15)',
-                                color: '#f59e0b',
-                                padding: '3px 10px',
-                                borderRadius: '4px',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                border: '1px solid rgba(245, 158, 11, 0.3)',
-                            }}>
-                                FEE — Harga dikurangi Rp 150.000
-                            </span>
-                        )}
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                            {columns.length} kolom • {isFee ? 'Total − DP = Jumlah' : 'Total saja'}
-                        </span>
-                    </div>
-                </div>
-            )}
-
-            {/* Dynamic Invoice Table */}
-            {selectedType && columns.length > 0 && (
-                <div className="glass-card" style={{ padding: '16px' }}>
-                    <div className="invoice-table-wrapper">
-                        <table className="invoice-table">
-                            <thead>
-                                <tr>
-                                    {columns.map((col) => (
-                                        <th key={col.key} style={{ minWidth: col.width }}>
-                                            {col.label}
-                                        </th>
-                                    ))}
-                                    <th style={{ width: '50px' }}></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rows.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {columns.map((col) => (
-                                            <td key={col.key}>
-                                                {renderCellInput(col, row, rowIndex)}
-                                            </td>
-                                        ))}
-                                        <td className="p-3">
-                                            <button
-                                                onClick={() => removeRow(rowIndex)}
-                                                className="text-red-500 hover:text-red-700 transition"
-                                                title="Hapus Baris"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </td>
-                                    </tr>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih Tipe Invoice" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {INVOICE_TYPES.map(t => (
+                                    <SelectItem key={t.id} value={t.id.toString()}>
+                                        {t.name}
+                                    </SelectItem>
                                 ))}
-                                {/* Column Totals Footer */}
-                                <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                                    {selectedType.columns.map((col) => {
-                                        if (col.key === 'no') {
-                                            return <td key="total-label" className="p-2 text-center text-xs">TOTAL</td>;
-                                        }
-                                        if (col.type === 'currency') {
-                                            const sum = rows.reduce((acc, r) => acc + (Number(r[col.key]) || 0), 0);
-                                            return (
-                                                <td key={`total-${col.key}`} className="p-2 text-right text-xs">
-                                                    {sum > 0 ? sum.toLocaleString('id-ID') : '-'}
-                                                </td>
-                                            );
-                                        }
-                                        return <td key={`total-${col.key}`} className="p-2"></td>;
-                                    })}
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    <div style={{ marginTop: '12px' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={addRow}>
-                            <Plus size={14} /> Tambah Baris
-                        </button>
+                    <div className="space-y-2">
+                        <Label>No. Invoice</Label>
+                        <Input
+                            value={invoiceNumber}
+                            onChange={e => setInvoiceNumber(e.target.value)}
+                            className="font-mono font-semibold"
+                        />
                     </div>
 
-                    {/* Total Bar — Different for FEE vs NON-FEE */}
-                    <div className="total-bar">
-                        <div style={{ flex: 1 }}>
-                            <div className="total-label">Total</div>
-                            <div className="total-amount">{formatRupiah(grandTotal)}</div>
+                    <div className="space-y-2">
+                        <Label>Tanggal Invoice</Label>
+                        <Input
+                            type="date"
+                            value={invoiceDate}
+                            onChange={e => setInvoiceDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Periode (Opsional)</Label>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="date"
+                                value={periodeStart}
+                                onChange={e => setPeriodeStart(e.target.value)}
+                            />
+                            <span className="text-slate-400">-</span>
+                            <Input
+                                type="date"
+                                value={periodeEnd}
+                                onChange={e => setPeriodeEnd(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Main Content */}
+            {selectedType ? (
+                <div className="space-y-6">
+                    <Card className="shadow-lg overflow-hidden border-0 ring-1 ring-slate-200 dark:ring-slate-700">
+                        <div className="bg-slate-50 dark:bg-slate-900 border-b p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Badge variant={isFee ? 'secondary' : 'default'} className={isFee ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}>
+                                    {selectedType.name}
+                                </Badge>
+                                {isFee && <span className="text-xs font-medium text-amber-600">FEE Mode (Potongan Rp 150rb)</span>}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                                {rows.length} baris data
+                            </div>
                         </div>
 
-                        {isFee && (
-                            <>
-                                <div style={{ borderLeft: '1px solid var(--border-primary)', margin: '0 20px', height: '60px' }} />
-                                <div style={{ textAlign: 'center' }}>
-                                    <div className="total-label">DP (Down Payment)</div>
-                                    <input
-                                        type="number"
-                                        className="currency-input"
-                                        style={{
-                                            width: '160px',
-                                            background: 'var(--bg-elevated)',
-                                            border: '2px solid var(--primary-500)',
-                                            borderRadius: '8px',
-                                            padding: '8px 12px',
-                                            fontSize: '16px',
-                                            fontWeight: 700,
-                                            color: 'var(--text-primary)',
-                                            textAlign: 'right',
-                                        }}
-                                        value={dp || ''}
-                                        placeholder="0"
-                                        onChange={(e) => setDp(Number(e.target.value) || 0)}
-                                    />
-                                </div>
-                                <div style={{ borderLeft: '1px solid var(--border-primary)', margin: '0 20px', height: '60px' }} />
-                                <div style={{ textAlign: 'right' }}>
-                                    <div className="total-label" style={{ color: 'var(--accent-400)' }}>Jumlah (Total-DP)</div>
-                                    <div className="total-amount" style={{ color: 'var(--accent-400)' }}>
-                                        {formatRupiah(jumlah)}
+                        <div className="overflow-x-auto">
+                            <div className="min-w-max p-4">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="hover:bg-transparent">
+                                            {columns.map((col) => (
+                                                <TableHead key={col.key} style={{ width: col.width }} className="whitespace-nowrap">
+                                                    {col.label}
+                                                </TableHead>
+                                            ))}
+                                            <TableHead className="w-[50px]"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {rows.map((row, rowIndex) => (
+                                            <TableRow key={rowIndex} className="hover:bg-slate-50/50">
+                                                {columns.map((col) => (
+                                                    <TableCell key={col.key} className="p-2">
+                                                        {renderCellInput(col, row, rowIndex)}
+                                                    </TableCell>
+                                                ))}
+                                                <TableCell className="p-2 text-center">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                        onClick={() => removeRow(rowIndex)}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t bg-slate-50/50">
+                            <Button variant="outline" onClick={addRow} className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50">
+                                <Plus size={16} /> Tambah Baris
+                            </Button>
+                        </div>
+                    </Card>
+
+                    {/* Footer Totals */}
+                    <Card className="bg-slate-900 text-white border-0 shadow-xl">
+                        <CardContent className="p-6">
+                            <div className="grid md:grid-cols-2 gap-8 items-center">
+                                <div>
+                                    <div className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Total Tagihan</div>
+                                    <div className="text-4xl font-bold tracking-tight text-white mb-2">
+                                        {formatRupiah(grandTotal)}
+                                    </div>
+                                    <div className="text-slate-400 italic text-sm border-l-2 border-blue-500 pl-3">
+                                        "{terbilangText}"
                                     </div>
                                 </div>
-                            </>
-                        )}
-                    </div>
 
-                    {/* Terbilang */}
-                    {terbilangText && (
-                        <div style={{
-                            padding: '10px 16px',
-                            background: 'var(--bg-elevated)',
-                            borderRadius: '8px',
-                            marginTop: '8px',
-                            fontSize: '12px',
-                            color: 'var(--text-secondary)',
-                            fontStyle: 'italic',
-                        }}>
-                            <strong>Terbilang:</strong> {terbilangText}
+                                {isFee && (
+                                    <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-300">Total Kotor</span>
+                                            <span className="font-mono">{formatRupiah(grandTotal)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-amber-400 font-medium">Potongan DP</span>
+                                            <div className="w-32">
+                                                <Input
+                                                    type="number"
+                                                    className="h-8 text-right bg-slate-800 border-slate-700 text-white"
+                                                    value={dp}
+                                                    onChange={e => setDp(Number(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <Separator className="bg-white/10" />
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-lg text-blue-400">Total Bersih</span>
+                                            <span className="font-bold text-2xl font-mono">{formatRupiah(jumlah)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 sticky bottom-4 z-50">
+                        <div className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 flex gap-3">
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                onClick={handleDownloadPdf}
+                                disabled={isPdfGenerating || rows.length === 0}
+                                className="shadow-sm"
+                            >
+                                {isPdfGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                                PDF
+                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        size="lg"
+                                        disabled={isSubmitting || rows.length === 0}
+                                        className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                    >
+                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                        {isEditMode ? 'Update Invoice' : 'Simpan Invoice'}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Konfirmasi Simpan</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Apakah data yang dimasukkan sudah benar?
+                                            {isEditMode ? ' Perubahan akan menimpa data invoice sebelumnya.' : ' Invoice baru akan dibuat.'}
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Periksa Lagi</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleSubmit}>
+                                            Ya, Simpan
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="actions-bar">
-                        <button
-                            className="btn btn-primary btn-lg"
-                            onClick={handleSubmit}
-                            disabled={isSubmitting || rows.length === 0}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <span className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                                    Menyimpan...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={18} />
-                                    Simpan ke Google Sheets
-                                </>
-                            )}
-                        </button>
-                        <button
-                            className="btn btn-secondary btn-lg"
-                            onClick={handleDownloadPdf}
-                            disabled={isPdfGenerating || rows.length === 0}
-                        >
-                            {isPdfGenerating ? (
-                                <>
-                                    <span className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <FileDown size={18} />
-                                    Download PDF
-                                </>
-                            )}
-                        </button>
                     </div>
                 </div>
-            )}
-
-            {/* Empty State */}
-            {!selectedType && (
-                <div className="glass-card" style={{ textAlign: 'center', padding: '80px 40px' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                        Pilih Tipe Invoice untuk Mulai
-                    </h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '440px', margin: '0 auto' }}>
-                        Ada 16 tipe invoice yang tersedia. Kolom tabel, logika harga, dan template PDF
-                        akan menyesuaikan otomatis berdasarkan tipe yang dipilih.
+            ) : (
+                <div className="flex flex-col items-center justify-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                    <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                        <Tag size={32} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Pilih Tipe Invoice</h3>
+                    <p className="text-slate-500 max-w-sm text-center mt-2">
+                        Silakan pilih tipe invoice di atas untuk mulai mengisi data. Template kolom akan menyesuaikan secara otomatis.
                     </p>
-                    <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--bg-card)', borderRadius: '6px', color: 'var(--text-muted)' }}>
-                            🟦 13 Tipe Grup A (Heri)
-                        </span>
-                        <span style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--bg-card)', borderRadius: '6px', color: 'var(--text-muted)' }}>
-                            🟩 3 Tipe Grup B (Ristummiyati)
-                        </span>
-                        <span style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '6px', color: '#f59e0b' }}>
-                            🔶 3 Tipe FEE (Harga - 150rb)
-                        </span>
-                    </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

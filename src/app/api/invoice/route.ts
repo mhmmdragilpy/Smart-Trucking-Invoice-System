@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
 
         // GAS is pure CRUD — just forward the payload
         // totalAmount & terbilang already computed by React
+        // [UPDATE] We now support 'action' (create/delete)
         const response = await fetch(GAS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

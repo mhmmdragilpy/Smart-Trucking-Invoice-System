@@ -1,501 +1,257 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   FileText, BarChart3, Plus, ArrowRight, Search,
   Package, Ship, TrendingUp, Zap, Clock, Shield
 } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { INVOICE_TYPES } from '@/lib/customerConfig';
 
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { RecentInvoices } from '@/components/RecentInvoices';
+
 export default function DashboardPage() {
+  const router = useRouter();
   const feeTypes = INVOICE_TYPES.filter(t => t.isFee);
   const nonFeeTypes = INVOICE_TYPES.filter(t => !t.isFee);
 
-  return (
-    <>
-      {/* ── Hero Section ────────────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(26, 127, 212, 0.12) 0%, rgba(16, 185, 129, 0.08) 50%, rgba(26, 127, 212, 0.06) 100%)',
-        border: '1px solid rgba(26, 127, 212, 0.15)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '40px 36px',
-        marginBottom: '32px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Decorative circles */}
-        <div style={{
-          position: 'absolute', top: '-40px', right: '-40px',
-          width: '180px', height: '180px',
-          background: 'radial-gradient(circle, rgba(26, 127, 212, 0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-30px', left: '20%',
-          width: '120px', height: '120px',
-          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)',
-          borderRadius: '50%',
-          pointerEvents: 'none',
-        }} />
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = ((e.currentTarget as HTMLFormElement).elements.namedItem('q') as HTMLInputElement).value;
+    if (val) router.push(`/rekap?q=${encodeURIComponent(val)}`);
+  };
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <Image
-              src="/logo.png"
-              alt="PT Tunggal Mandiri Logistik"
-              width={64}
-              height={64}
-              style={{ objectFit: 'contain' }}
-              priority
-            />
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* ── Hero Section ────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800 border border-blue-100 dark:border-slate-700 p-8 lg:p-10">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="bg-white/50 dark:bg-slate-800/50 p-2 rounded-2xl backdrop-blur-sm shadow-sm border border-white/20">
+              <Image
+                src="/logo.png"
+                alt="PT Tunggal Mandiri Logistik"
+                width={64}
+                height={64}
+                className="object-contain"
+                priority
+              />
+            </div>
             <div>
-              <h1 style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '28px',
-                fontWeight: 800,
-                letterSpacing: '0.04em',
-                background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--primary-300) 60%, var(--accent-400) 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
+              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
                 PT Tunggal Mandiri Logistik
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px', letterSpacing: '0.02em' }}>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">
                 Sistem Manajemen Invoice — Jasa Angkutan Darat (Trucking)
               </p>
             </div>
           </div>
+
           {/* ── Tracking Search Bar ───────────────────────────────── */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const val = (e.currentTarget.elements.namedItem('q') as HTMLInputElement).value;
-              if (val) window.location.href = `/rekap?q=${encodeURIComponent(val)}`;
-            }}
-            style={{ marginTop: '24px', maxWidth: '480px', position: 'relative', zIndex: 10 }}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'center',
-              background: 'var(--bg-input)', // Matches theme
-              borderRadius: 'var(--radius-pill)',
-              padding: '6px 6px 6px 20px',
-              border: '1px solid var(--border-primary)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
-              transition: 'all 0.2s',
-            }}>
-              <Search size={20} color="var(--text-muted)" />
-              <input
+          <form onSubmit={handleSearch} className="max-w-lg mt-8 relative">
+            <div className="relative group">
+              <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+              <Input
                 name="q"
                 type="text"
-                placeholder="Lacak No. Invoice / Mobil (B 1234 XX)"
-                style={{
-                  flex: 1, border: 'none', background: 'transparent',
-                  padding: '10px 12px', fontSize: '14px', outline: 'none',
-                  color: 'var(--text-primary)',
-                }}
+                placeholder="Lacak No. Invoice / Mobil (B 1234 XX)..."
+                className="pl-12 pr-24 h-12 rounded-full border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 dark:shadow-none focus-visible:ring-blue-500 transition-shadow"
               />
-              <button type="submit" style={{
-                background: 'linear-gradient(135deg, var(--primary-500), var(--primary-600))',
-                color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)',
-                padding: '10px 24px', fontSize: '14px', fontWeight: 600,
-                cursor: 'pointer', transition: 'transform 0.1s',
-              }}>
+              <Button
+                type="submit"
+                className="absolute right-1 top-1 rounded-full h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md transition-transform active:scale-95"
+              >
                 Cari
-              </button>
+              </Button>
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', paddingLeft: '20px' }}>
-              Contoh: INV/2023/X/001 atau B 9876 XYZ
+            <p className="text-xs text-slate-400 mt-3 pl-5">
+              Contoh: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">INV/2023/X/001</code> atau <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">B 9876 XYZ</code>
             </p>
           </form>
         </div>
       </div>
 
-      {/* ── Wave Divider ────────────────────────────────────── */}
-      <div className="wave-divider" style={{ marginTop: '-40px', marginBottom: '32px', zIndex: 0 }}>
-        <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <path fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style={{ fill: 'var(--bg-primary)' }}></path>
-          <path fillOpacity="0.5" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style={{ fill: 'var(--accent-400)', opacity: 0.1 }}></path>
-        </svg>
-      </div>
-
       {/* ── Quick Actions ───────────────────────────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '16px',
-        marginBottom: '32px',
-      }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Buat Invoice Card */}
-        <Link href="/invoice" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, var(--primary-700) 0%, var(--primary-600) 100%)',
-            border: '1px solid rgba(26, 127, 212, 0.3)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '28px',
-            display: 'flex', alignItems: 'center', gap: '20px',
-            cursor: 'pointer',
-            transition: 'all 0.25s ease',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-            className="action-card"
-          >
-            <div style={{
-              position: 'absolute', top: '-20px', right: '-20px',
-              width: '100px', height: '100px',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }} />
-            <div style={{
-              width: '52px', height: '52px',
-              background: 'rgba(255, 255, 255, 0.15)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <Plus size={24} color="#fff" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '16px', fontWeight: 700, color: '#fff',
-                marginBottom: '4px', letterSpacing: '0.03em',
-              }}>
-                Buat Invoice Baru
-              </h3>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-                Pilih dari 16 tipe invoice — kolom otomatis menyesuaikan
-              </p>
-            </div>
-            <ArrowRight size={20} color="rgba(255,255,255,0.6)" />
-          </div>
+        <Link href="/invoice" className="group">
+          <Card className="h-full border-blue-100 dark:border-blue-900/30 bg-gradient-to-br from-blue-600 to-blue-700 text-white overflow-hidden relative border-0 shadow-xl shadow-blue-500/20 transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] hover:-translate-y-1">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-150 duration-700" />
+            <CardHeader className="relative z-10 pb-2">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
+                <Plus className="text-white h-6 w-6" />
+              </div>
+              <CardTitle className="text-xl">Buat Invoice Baru</CardTitle>
+              <CardDescription className="text-blue-100">
+                Pilih dari 16 tipe invoice dengan template otomatis.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="relative z-10 pt-4">
+              <div className="flex items-center text-sm font-semibold bg-white/20 px-4 py-2 rounded-full backdrop-blur-md group-hover:bg-white/30 transition-colors">
+                Mulai Sekarang <ArrowRight className="ml-2 h-4 w-4" />
+              </div>
+            </CardFooter>
+          </Card>
         </Link>
 
         {/* Rekapitulasi Card */}
-        <Link href="/rekap" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, var(--accent-700) 0%, var(--accent-600) 100%)',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '28px',
-            display: 'flex', alignItems: 'center', gap: '20px',
-            cursor: 'pointer',
-            transition: 'all 0.25s ease',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-            className="action-card"
-          >
-            <div style={{
-              position: 'absolute', top: '-20px', right: '-20px',
-              width: '100px', height: '100px',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-              borderRadius: '50%',
-              pointerEvents: 'none',
-            }} />
-            <div style={{
-              width: '52px', height: '52px',
-              background: 'rgba(255, 255, 255, 0.15)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <BarChart3 size={24} color="#fff" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '16px', fontWeight: 700, color: '#fff',
-                marginBottom: '4px', letterSpacing: '0.03em',
-              }}>
-                Lihat Rekapitulasi
-              </h3>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-                Riwayat, filter, sorting — semua invoice tercatat
-              </p>
-            </div>
-            <ArrowRight size={20} color="rgba(255,255,255,0.6)" />
-          </div>
+        <Link href="/rekap" className="group">
+          <Card className="h-full border-emerald-100 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white overflow-hidden relative border-0 shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] hover:-translate-y-1">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-150 duration-700" />
+            <CardHeader className="relative z-10 pb-2">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
+                <BarChart3 className="text-white h-6 w-6" />
+              </div>
+              <CardTitle className="text-xl">Lihat Rekapitulasi</CardTitle>
+              <CardDescription className="text-emerald-100">
+                Pantau riwayat invoice, filter data, dan export laporan.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="relative z-10 pt-4">
+              <div className="flex items-center text-sm font-semibold bg-white/20 px-4 py-2 rounded-full backdrop-blur-md group-hover:bg-white/30 transition-colors">
+                Buka Data <ArrowRight className="ml-2 h-4 w-4" />
+              </div>
+            </CardFooter>
+          </Card>
         </Link>
       </div>
 
+      {/* ── Recent Invoices ─────────────────────────────────── */}
+      <RecentInvoices />
+
       {/* ── Features Highlights ─────────────────────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '14px',
-        marginBottom: '36px',
-      }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: Zap, label: 'Template Otomatis', desc: '16 tipe kolom', color: 'var(--primary-400)' },
-          { icon: Shield, label: 'FEE Handling', desc: 'Auto potongan', color: 'var(--accent-400)' },
-          { icon: FileText, label: 'PDF Instan', desc: 'Generate langsung', color: 'var(--gold-500)' },
-          { icon: Clock, label: 'Rekapitulasi', desc: 'Filter & search', color: '#a78bfa' },
+          { icon: Zap, label: 'Template Otomatis', desc: '16 tipe kolom', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+          { icon: Shield, label: 'FEE Handling', desc: 'Auto potongan', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { icon: FileText, label: 'PDF Instan', desc: 'Generate langsung', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+          { icon: Clock, label: 'Rekapitulasi', desc: 'Filter & search', color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20' },
         ].map((feat, i) => (
-          <div key={i} style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-primary)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 16px',
-            textAlign: 'center',
-            transition: 'all 0.25s ease',
-          }}
-            className="feature-card"
-          >
-            <div style={{
-              width: '40px', height: '40px', margin: '0 auto 10px',
-              background: `${feat.color}18`,
-              borderRadius: 'var(--radius-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <feat.icon size={18} color={feat.color} />
-            </div>
-            <h4 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '12px', fontWeight: 700,
-              color: 'var(--text-primary)',
-              marginBottom: '3px', letterSpacing: '0.03em',
-            }}>
-              {feat.label}
-            </h4>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{feat.desc}</p>
-          </div>
+          <Card key={i} className="border-none shadow-sm hover:shadow-md transition-shadow bg-slate-50 dark:bg-slate-900">
+            <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full">
+              <div className={`w-10 h-10 ${feat.bg} rounded-xl flex items-center justify-center mb-3`}>
+                <feat.icon className={`h-5 w-5 ${feat.color}`} />
+              </div>
+              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{feat.label}</h4>
+              <p className="text-xs text-slate-500">{feat.desc}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* ── Invoice Types Overview ──────────────────────────── */}
-      <div className="glass-card" style={{ marginBottom: '24px' }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginBottom: '20px',
-        }}>
-          <div>
-            <h3 style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: '16px', fontWeight: 700,
-              color: 'var(--text-primary)',
-              letterSpacing: '0.03em',
-              marginBottom: '2px',
-            }}>
-              Tipe Invoice Tersedia
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              {INVOICE_TYPES.length} tipe — klik untuk langsung membuat invoice
-            </p>
+      <Card className="shadow-lg border-slate-200 dark:border-slate-800">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div className="space-y-1">
+            <CardTitle className="text-xl">Tipe Invoice Tersedia</CardTitle>
+            <CardDescription>
+              {INVOICE_TYPES.length} tipe invoice siap digunakan
+            </CardDescription>
           </div>
-          <span style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '28px', fontWeight: 800,
-            background: 'linear-gradient(135deg, var(--primary-400), var(--accent-400))',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>
+          <div className="text-4xl font-extrabold bg-gradient-to-br from-blue-500 to-indigo-600 bg-clip-text text-transparent">
             {INVOICE_TYPES.length}
-          </span>
-        </div>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-6">
 
-        {/* Non-FEE types */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{
-            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-            letterSpacing: '0.08em', color: 'var(--primary-400)',
-            fontFamily: "'Montserrat', sans-serif",
-            marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
-            <Package size={12} /> Standar ({nonFeeTypes.length} tipe)
+          {/* Non-FEE types */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+              <Package className="h-3 w-3" /> Standar ({nonFeeTypes.length} tipe)
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {nonFeeTypes.map(t => (
+                <Link href="/invoice" key={t.id}>
+                  <div className="group h-full flex items-center p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all cursor-pointer">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mr-3 shrink-0" />
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate w-full group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                      {t.name}
+                    </span>
+                    <span className="ml-auto text-[10px] text-slate-400 shrink-0">
+                      {t.columns.length} col
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '8px',
-          }}>
-            {nonFeeTypes.map(t => (
-              <Link href="/invoice" key={t.id} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  background: 'var(--bg-input)',
-                  border: '1px solid var(--border-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 14px',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                }}
-                  className="type-item"
-                >
-                  <div style={{
-                    width: '6px', height: '6px',
-                    borderRadius: '50%',
-                    background: 'var(--primary-400)',
-                    flexShrink: 0,
-                  }} />
-                  <span style={{
-                    fontSize: '12px', color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {t.name}
-                  </span>
-                  <span style={{
-                    marginLeft: 'auto', fontSize: '10px',
-                    color: 'var(--text-muted)', flexShrink: 0,
-                  }}>
-                    {t.columns.length} col
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
 
-        {/* FEE types */}
-        <div>
-          <div style={{
-            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-            letterSpacing: '0.08em', color: '#f59e0b',
-            fontFamily: "'Montserrat', sans-serif",
-            marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
-            <TrendingUp size={12} /> FEE — Harga −150rb ({feeTypes.length} tipe)
+          <Separator />
+
+          {/* FEE types */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+              <TrendingUp className="h-3 w-3" /> FEE — Potongan Harga ({feeTypes.length} tipe)
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {feeTypes.map(t => (
+                <Link href="/invoice" key={t.id}>
+                  <div className="group h-full flex items-center p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/10 hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all cursor-pointer">
+                    <Badge variant="outline" className="mr-2 h-5 px-1 bg-amber-100 text-amber-700 border-amber-200 text-[9px]">FEE</Badge>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate w-full group-hover:text-amber-800 dark:group-hover:text-amber-400">
+                      {t.name}
+                    </span>
+                    <span className="ml-auto text-[10px] text-amber-600/60 shrink-0">
+                      {t.columns.length} col
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '8px',
-          }}>
-            {feeTypes.map(t => (
-              <Link href="/invoice" key={t.id} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  background: 'rgba(245, 158, 11, 0.06)',
-                  border: '1px solid rgba(245, 158, 11, 0.15)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 14px',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                }}
-                  className="type-item"
-                >
-                  <span style={{
-                    fontSize: '8px', fontWeight: 700,
-                    background: 'rgba(245, 158, 11, 0.2)',
-                    color: '#f59e0b',
-                    padding: '2px 5px',
-                    borderRadius: '3px',
-                    flexShrink: 0,
-                  }}>
-                    FEE
-                  </span>
-                  <span style={{
-                    fontSize: '12px', color: 'var(--text-secondary)',
-                    fontWeight: 500,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {t.name}
-                  </span>
-                  <span style={{
-                    marginLeft: 'auto', fontSize: '10px',
-                    color: 'var(--text-muted)', flexShrink: 0,
-                  }}>
-                    {t.columns.length} col
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+
+        </CardContent>
+      </Card>
 
       {/* ── Bottom Info Row ─────────────────────────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '16px',
-      }}>
+      <div className="grid md:grid-cols-2 gap-6 pb-8">
         {/* Layanan */}
-        <div className="glass-card" style={{ padding: '20px 24px' }}>
-          <h4 style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '13px', fontWeight: 700,
-            color: 'var(--text-primary)',
-            marginBottom: '12px', letterSpacing: '0.03em',
-            display: 'flex', alignItems: 'center', gap: '8px',
-          }}>
-            <Ship size={14} color="var(--primary-400)" /> Layanan Kami
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Ship className="h-4 w-4 text-blue-500" /> Layanan Kami
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
             {['Handling Import', 'Handling Export', 'Trucking Kontainer', 'Pribadi Import'].map((s, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                fontSize: '12px', color: 'var(--text-secondary)',
-              }}>
-                <div style={{
-                  width: '5px', height: '5px',
-                  borderRadius: '50%',
-                  background: i % 2 === 0 ? 'var(--primary-400)' : 'var(--accent-400)',
-                }} />
+              <div key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                <div className={`h-1.5 w-1.5 rounded-full ${i % 2 === 0 ? 'bg-blue-500' : 'bg-emerald-500'}`} />
                 {s}
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* FEE Rules Compact */}
-        <div className="glass-card" style={{
-          padding: '20px 24px',
-          borderLeft: '3px solid #f59e0b',
-        }}>
-          <h4 style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '13px', fontWeight: 700,
-            color: '#f59e0b',
-            marginBottom: '12px', letterSpacing: '0.03em',
-            display: 'flex', alignItems: 'center', gap: '8px',
-          }}>
-            <Zap size={14} /> Aturan FEE
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {/* FEE Rules */}
+        <Card className="border-l-4 border-l-amber-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-amber-600 dark:text-amber-500">
+              <Zap className="h-4 w-4" /> Aturan FEE
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
             {[
               'Harga otomatis −Rp 150.000',
               'Footer: Total − DP = Jumlah',
               'Admin input DP manual',
             ].map((rule, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                fontSize: '12px', color: 'var(--text-secondary)',
-              }}>
-                <div style={{
-                  width: '5px', height: '5px',
-                  borderRadius: '50%',
-                  background: '#f59e0b',
-                }} />
+              <div key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                 {rule}
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* ── Hover Styles (injected) ─────────────────────────── */}
-      <style jsx>{`
-        .action-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-        }
-        .feature-card:hover {
-          transform: translateY(-2px);
-          border-color: var(--border-glow);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-        .type-item:hover {
-          border-color: var(--border-glow) !important;
-          background: var(--bg-card-hover) !important;
-        }
-      `}</style>
-    </>
+    </div>
   );
 }

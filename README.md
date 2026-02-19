@@ -64,7 +64,7 @@ Ikuti langkah-langkah berikut untuk menjalankan project ini di environment lokal
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/mhmmdragilpy/Smart-Trucking-Invoice-System.git
-cd invoice-app
+cd Smart-Trucking-Invoice-System
 ```
 
 ### 2. Install Dependencies

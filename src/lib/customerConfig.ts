@@ -43,7 +43,7 @@ export const BANK_ACCOUNTS: Record<'A' | 'B', BankAccount> = {
   },
 };
 
-import { CONTAINER_STATUSES, CONTAINER_SIZES, DEPOS, PICKUP_LOCATIONS } from './referenceData';
+import { CONTAINER_STATUSES, CONTAINER_SIZES, DEPOS, PICKUP_LOCATIONS } from './data/masterData';
 
 // ── Shared Options ────────────────────────────────────────────
 const STATUS_OPTIONS = CONTAINER_STATUSES;

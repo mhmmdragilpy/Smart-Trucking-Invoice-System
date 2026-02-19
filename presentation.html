@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penawaran: Smart Trucking Invoice System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .hero-pattern {
+            background-color: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="truck" class="h-6 w-6 text-blue-600"></i>
+                    <span class="font-bold text-lg tracking-tight text-slate-900">Smart Trucking Invoice</span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-600">
+                    <a href="#features" class="hover:text-blue-600 transition">Fitur Unggulan</a>
+                    <a href="#tech" class="hover:text-blue-600 transition">Teknologi</a>
+                    <a href="#pricing" class="hover:text-blue-600 transition">Penawaran</a>
+                </div>
+                <a href="#pricing"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-full transition shadow-lg shadow-blue-500/30">
+                    Ambil Penawaran
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-pattern pt-32 pb-20 lg:pt-48 lg:pb-32 text-white relative overflow-hidden">
+        <div
+            class="absolute top-0 right-0 w-1/3 h-full bg-blue-500/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2">
+        </div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div
+                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700 text-blue-200 text-xs font-semibold uppercase tracking-wider mb-6 animate-pulse">
+                v1.0 Production Ready
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                Sistem Invoice Logistik <br class="hidden md:block" />
+                <span class="gradient-text">Cerdas, Cepat, & Tanpa Error</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Solusi manajemen tagihan trucking yang dirancang khusus untuk menangani kompleksitas dokumen logistik.
+                Hemat waktu administrasi hingga 80% dan hilangkan kesalahan hitung manusia.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#features"
+                    class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 px-8 rounded-xl hover:bg-slate-100 transition shadow-xl shadow-white/10">
+                    Lihat Fitur
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+                <a href="#pricing"
+                    class="inline-flex items-center justify-center gap-2 bg-slate-800 border border-slate-700 text-white font-semibold py-3.5 px-8 rounded-xl hover:bg-slate-700 transition">
+                    Lihat Harga Spesial
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Mengapa Sistem Ini Berbeda?</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto">Kami tidak membuat aplikasi generik. Ini adalah sistem
+                    "Tailor-Made" yang memahami bahasa bisnis trucking Anda.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-100 hover:shadow-lg hover:shadow-blue-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-blue-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">16+ Tipe Invoice</h3>
+                    <p class="text-slate-500 leading-relaxed">Mendukung berbagai format tagihan: Import, Export, Fee
+                        Mode, Transport, hingga Refund. Kolom menyesuaikan otomatis.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="calculator"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Kalkulasi Otomatis</h3>
+                    <p class="text-slate-500 leading-relaxed">Lupakan kalkulator. Sistem menghitung Total, DP, Potongan
+                        Fee, hingga Terbilang secara instan dan akurat.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-amber-100 hover:shadow-lg hover:shadow-amber-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-amber-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="file-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">PDF Generator Pro</h3>
+                    <p class="text-slate-500 leading-relaxed">Cetak invoice standard industri (A4) dengan satu klik.
+                        Format rapi, profesional, dan siap kirim ke klien.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-purple-100 hover:shadow-lg hover:shadow-purple-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="database"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Rekapitulasi Sentral</h3>
+                    <p class="text-slate-500 leading-relaxed">Semua data tersimpan aman di cloud. Cari invoice lama
+                        dalam hitungan detik, tidak perlu bongkar tumpukan kertas.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="cloud-lightning"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Akses Cloud 24/7</h3>
+                    <p class="text-slate-500 leading-relaxed">Akses sistem dari kantor, rumah, atau lapangan. Bisa
+                        dibuka lewat Laptop, Tablet, maupun HP tanpa instalasi.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div
+                    class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-pink-100 hover:shadow-lg hover:shadow-pink-500/5 transition group">
+                    <div
+                        class="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center mb-6 text-white shadow-lg shadow-pink-500/30 group-hover:scale-110 transition">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Garansi Maintenance</h3>
+                    <p class="text-slate-500 leading-relaxed">Dukungan teknis penuh selama 1 tahun. Kami pastikan sistem
+                        berjalan lancar tanpa gangguan.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 bg-slate-900 relative">
+        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <span class="text-blue-400 font-semibold tracking-wider uppercase text-sm">Penawaran Eksklusif</span>
+                <h2 class="text-3xl md:text-5xl font-bold text-white mt-2 mb-6">Investasi Terbaik untuk Bisnis Anda</h2>
+                <p class="text-slate-400">Harga spesial "Early Adopter" khusus untuk kesepakatan hari ini.</p>
+            </div>
+
+            <div
+                class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-1 p-0.5 shadow-2xl overflow-hidden border border-slate-700">
+                <div class="bg-slate-900 rounded-[22px] p-8 md:p-12">
+                    <div class="flex flex-col md:flex-row gap-12 items-center">
+                        <div class="flex-1 space-y-6">
+                            <h3 class="text-2xl font-bold text-white">Full License Package</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-500 shrink-0"></i>
+                                    <span class="text-slate-300">Aplikasi Web Smart Trucking (Source Code Full)</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-500 shrink-0"></i>
+                                    <span class="text-slate-300">Deployment Server Gratis (Vercel + Supabase) - <span
+                                            class="text-emerald-400 font-bold">Hemat Rp 5 Jt / Tahun</span></span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-500 shrink-0"></i>
+                                    <span class="text-slate-300">Maintenance & Support 1 Tahun</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-500 shrink-0"></i>
+                                    <span class="text-slate-300">Gratis Penambahan Fitur Minor</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-500 shrink-0"></i>
+                                    <span class="text-slate-300">Pelatihan Penggunaan Sistem</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="w-full md:w-auto text-center md:text-right">
+                            <div class="text-slate-500 text-lg line-through font-semibold mb-2">Rp 15.000.000</div>
+                            <div class="text-5xl md:text-6xl font-bold text-white mb-4">Rp 5 Jt</div>
+                            <span
+                                class="inline-block bg-blue-600/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-6">
+                                Harga Final - All In
+                            </span>
+                            <br>
+                            <a href="https://wa.me/6285117088518?text=Saya%20tertarik%20dengan%20proyek%20Smart%20Trucking%20Invoice"
+                                target="_blank"
+                                class="inline-block w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-xl transition shadow-lg shadow-blue-600/20">
+                                Deal Sekarang
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-slate-500 text-xs mt-8">
+                *Penawaran ini mengikat garansi 1 tahun. Setelah 1 tahun, sistem tetap milik Anda selamanya tanpa biaya
+                langganan wajib (hanya opsional maintenance jika diperlukan).
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 py-12 border-t border-slate-900 text-center">
+        <p class="text-slate-500 text-sm">
+            &copy; 2026 Smart Trucking Invoice System. Developed with modern technology for reliable business.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
