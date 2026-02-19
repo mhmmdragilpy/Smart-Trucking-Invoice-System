@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FileText, BarChart3, Home, Sun, Moon, Database, Menu, PanelLeftClose, PanelLeftOpen, LogOut, User, Settings, ShieldCheck } from 'lucide-react';
+import { FileText, BarChart3, Home, Sun, Moon, Database, Menu, PanelLeftClose, PanelLeftOpen, LogOut, ShieldCheck } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { logoutAction } from '@/app/actions/auth';
-import { toast } from 'sonner';
+
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -78,13 +78,7 @@ export function Sidebar() {
     };
 
     const handleLogout = async () => {
-        try {
-            await logoutAction();
-            toast.success('Logged out successfully');
-        } catch (error) {
-            console.error(error);
-            toast.error('Logout failed');
-        }
+        await logoutAction();
     };
 
     const SidebarContent = ({ mobile = false }) => (
@@ -203,13 +197,6 @@ export function Sidebar() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" /> Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Settings className="mr-2 h-4 w-4" /> Settings
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleLogout}>
                             <LogOut className="mr-2 h-4 w-4" /> Log out
