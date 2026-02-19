@@ -12,28 +12,28 @@ export interface DashboardStats {
 
 export async function getDashboardStatsAction(): Promise<{ success: boolean; data?: DashboardStats; error?: string }> {
   try {
-    // Aggregate by Invoice Type
+    // Aggregate total billing amount (grandTotal) by Invoice Type
     const invoiceTypeParams = await db
       .select({
         name: invoices.invoiceTypeName,
-        value: sql<number>`cast(count(${invoices.id}) as int)`,
+        value: sql<number>`cast(coalesce(sum(cast(${invoices.grandTotal} as numeric)), 0) as float)`,
       })
       .from(invoices)
       .groupBy(invoices.invoiceTypeName);
 
-    // Aggregate by Customer Name
+    // Aggregate total billing amount (grandTotal) by Customer Name
     const customerParams = await db
       .select({
         name: invoices.customerName,
-        value: sql<number>`cast(count(${invoices.id}) as int)`,
+        value: sql<number>`cast(coalesce(sum(cast(${invoices.grandTotal} as numeric)), 0) as float)`,
       })
       .from(invoices)
       .groupBy(invoices.customerName);
 
     const totalInvoicesResult = await db
-        .select({ count: sql<number>`cast(count(${invoices.id}) as int)` })
-        .from(invoices);
-        
+      .select({ count: sql<number>`cast(count(${invoices.id}) as int)` })
+      .from(invoices);
+
     return {
       success: true,
       data: {
