@@ -17,6 +17,8 @@ export const invoices = pgTable("invoices", {
     periodEnd: date("period_end"),
     totalAmount: numeric("total_amount").default("0"),
     dp: numeric("dp").default("0"),
+    taxRate: numeric("tax_rate"),
+    taxAmount: numeric("tax_amount").default("0"),
     grandTotal: numeric("grand_total").default("0"),
     terbilang: text("terbilang"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

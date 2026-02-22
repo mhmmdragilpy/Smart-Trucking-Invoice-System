@@ -31,6 +31,8 @@ interface InvoicePdfProps {
     rows: Record<string, unknown>[];
     grandTotal: number;
     dp: number;
+    taxRate: number | null;
+    taxAmount: number;
     jumlah: number;
 }
 
@@ -148,12 +150,14 @@ export default function InvoicePdf({
     rows,
     grandTotal,
     dp,
+    taxRate,
+    taxAmount,
     jumlah,
 }: InvoicePdfProps) {
     const bank = BANK_ACCOUNTS[invoiceType.bankGroup];
     const cols = invoiceType.columns;
     const widths = getColWidths(cols.length);
-    const finalAmount = invoiceType.isFee ? jumlah : grandTotal;
+    const finalAmount = jumlah;
     const terbilang = terbilangCapitalized(Math.max(0, finalAmount));
 
     return (
@@ -283,7 +287,7 @@ export default function InvoicePdf({
                     </View>
                 </View>
 
-                {/* Footer — Total / DP / Jumlah */}
+                {/* Footer — Total / DP / Tax / Jumlah */}
                 <View style={s.footerSection}>
                     <View style={s.footerRow}>
                         <Text style={s.footerLabel}>TOTAL</Text>
@@ -291,11 +295,21 @@ export default function InvoicePdf({
                     </View>
 
                     {invoiceType.isFee && (
+                        <View style={s.footerRow}>
+                            <Text style={s.footerFeeLabel}>DP (Down Payment)</Text>
+                            <Text style={s.footerFeeValue}>- {fmtRp(dp)}</Text>
+                        </View>
+                    )}
+
+                    {taxRate != null && taxRate > 0 && (
+                        <View style={s.footerRow}>
+                            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#2563eb' }}>Pajak ({taxRate}%)</Text>
+                            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#2563eb' }}>+ {fmtRp(taxAmount)}</Text>
+                        </View>
+                    )}
+
+                    {(invoiceType.isFee || (taxRate != null && taxRate > 0)) && (
                         <>
-                            <View style={s.footerRow}>
-                                <Text style={s.footerFeeLabel}>DP (Down Payment)</Text>
-                                <Text style={s.footerFeeValue}>- {fmtRp(dp)}</Text>
-                            </View>
                             <View style={[s.divider, { marginVertical: 3 }]} />
                             <View style={s.footerRow}>
                                 <Text style={s.footerJumlahLabel}>JUMLAH</Text>

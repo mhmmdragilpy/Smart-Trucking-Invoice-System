@@ -12,7 +12,7 @@ import {
 } from '@/lib/customerConfig';
 import { ALL_DESTINATIONS, lookupPrice, lookupPrices, formatRupiah } from '@/lib/data/priceData';
 import { useInvoiceCalculations } from '@/hooks/useInvoiceCalculations';
-import { Save, Plus, Trash2, AlertCircle, CheckCircle, FileDown, Tag, Loader2, ArrowLeft } from 'lucide-react';
+import { Save, Plus, Trash2, AlertCircle, CheckCircle, FileDown, Tag, Loader2, ArrowLeft, Percent, Copy } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { CONSIGNEES, VEHICLES, CONTAINERS, GATE_PASS_OPTIONS } from '@/lib/data/masterData';
 import { createInvoiceAction, updateInvoiceAction, getInvoiceByIdAction, getLatestInvoiceNumberAction } from '@/app/actions/invoices';
@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -59,12 +60,13 @@ function InvoiceEditor() {
     const [periodeStart, setPeriodeStart] = useState('');
     const [periodeEnd, setPeriodeEnd] = useState('');
     const [dp, setDp] = useState(0);
+    const [taxRate, setTaxRate] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isPdfGenerating, setIsPdfGenerating] = useState(false);
 
     // ── Payloads & Logic ──────────────────────────────────────
-    const { columns, isFee, grandTotal, jumlah, terbilangText } =
-        useInvoiceCalculations(selectedType, rows, dp);
+    const { columns, isFee, grandTotal, jumlah, taxAmount, terbilangText } =
+        useInvoiceCalculations(selectedType, rows, dp, taxRate);
 
     // ── Load Invoice for Edit ─────────────────────────────────
     useEffect(() => {
@@ -89,6 +91,7 @@ function InvoiceEditor() {
             setPeriodeStart(invoiceData.periodStart || '');
             setPeriodeEnd(invoiceData.periodEnd || '');
             setDp(Number(invoiceData.dp) || 0);
+            setTaxRate(invoiceData.taxRate != null ? Number(invoiceData.taxRate) : null);
 
             if (invoiceData.items && Array.isArray(invoiceData.items)) {
                 // items from Drizzle query are already joined
@@ -189,6 +192,14 @@ function InvoiceEditor() {
         });
     }, []);
 
+    const copyRow = useCallback((index: number) => {
+        setRows((prev) => {
+            const cloned = { ...prev[index] };
+            const newRows = [...prev.slice(0, index + 1), cloned, ...prev.slice(index + 1)];
+            return newRows.map((row, i) => ({ ...row, no: i + 1 }));
+        });
+    }, []);
+
     const updateRow = useCallback((index: number, key: string, value: unknown) => {
         setRows((prev) => {
             const newRows = [...prev];
@@ -231,7 +242,9 @@ function InvoiceEditor() {
                 period_end: periodeEnd || null,
                 total_amount: grandTotal,
                 dp: isFee ? dp : 0,
-                grand_total: isFee ? jumlah : grandTotal,
+                grand_total: jumlah,
+                tax_rate: taxRate,
+                tax_amount: taxAmount,
                 terbilang: terbilangText,
                 items: rows.map(r => ({
                     row_number: r.no,
@@ -301,6 +314,8 @@ function InvoiceEditor() {
                     rows={rows}
                     grandTotal={grandTotal}
                     dp={dp}
+                    taxRate={taxRate}
+                    taxAmount={taxAmount}
                     jumlah={jumlah}
                 />
             );
@@ -502,6 +517,61 @@ function InvoiceEditor() {
                 </CardContent>
             </Card>
 
+            {/* Tax Configuration */}
+            <Card className="border-t-4 border-t-emerald-500 shadow-sm">
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-emerald-500" /> Pajak (Opsional)
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <Switch
+                            id="tax-toggle"
+                            checked={taxRate !== null}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    setTaxRate(1);
+                                } else {
+                                    setTaxRate(null);
+                                }
+                            }}
+                        />
+                        <Label htmlFor="tax-toggle" className="font-medium">
+                            {taxRate !== null ? 'Pajak Aktif' : 'Tanpa Pajak'}
+                        </Label>
+                    </div>
+                    {taxRate !== null && (
+                        <div className="flex items-center gap-2">
+                            <Label className="text-sm text-slate-500">Tarif:</Label>
+                            <Select
+                                value={taxRate.toString()}
+                                onValueChange={(val) => setTaxRate(Number(val))}
+                            >
+                                <SelectTrigger className="w-[120px]">
+                                    <SelectValue placeholder="Pilih %" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.from({ length: 19 }, (_, i) => {
+                                        const rate = 1 + i * 0.5;
+                                        return (
+                                            <SelectItem key={rate} value={rate.toString()}>
+                                                {rate % 1 === 0 ? rate.toFixed(0) : rate.toFixed(1)}%
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {taxRate !== null && grandTotal > 0 && (
+                        <div className="text-sm text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 px-3 py-1.5 rounded-lg font-medium">
+                            Pajak: {formatRupiah(taxAmount)}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
             {/* Main Content */}
             {selectedType ? (
                 <div className="space-y-6">
@@ -540,14 +610,25 @@ function InvoiceEditor() {
                                                     </TableCell>
                                                 ))}
                                                 <TableCell className="p-2 text-center">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                        onClick={() => removeRow(rowIndex)}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1 justify-center">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                                            onClick={() => copyRow(rowIndex)}
+                                                            title="Duplikat baris"
+                                                        >
+                                                            <Copy size={16} />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={() => removeRow(rowIndex)}
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -570,19 +651,20 @@ function InvoiceEditor() {
                                 <div>
                                     <div className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Total Tagihan</div>
                                     <div className="text-4xl font-bold tracking-tight text-white mb-2">
-                                        {formatRupiah(grandTotal)}
+                                        {formatRupiah(jumlah)}
                                     </div>
                                     <div className="text-slate-400 italic text-sm border-l-2 border-blue-500 pl-3">
                                         "{terbilangText}"
                                     </div>
                                 </div>
 
-                                {isFee && (
-                                    <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-300">Total Kotor</span>
-                                            <span className="font-mono">{formatRupiah(grandTotal)}</span>
-                                        </div>
+                                <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-300">Subtotal</span>
+                                        <span className="font-mono">{formatRupiah(grandTotal)}</span>
+                                    </div>
+
+                                    {isFee && (
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-amber-400 font-medium">Potongan DP</span>
                                             <div className="w-32">
@@ -594,13 +676,25 @@ function InvoiceEditor() {
                                                 />
                                             </div>
                                         </div>
-                                        <Separator className="bg-white/10" />
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-bold text-lg text-blue-400">Total Bersih</span>
-                                            <span className="font-bold text-2xl font-mono">{formatRupiah(jumlah)}</span>
+                                    )}
+
+                                    {taxRate !== null && taxRate > 0 && (
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-emerald-400 font-medium">Pajak ({taxRate}%)</span>
+                                            <span className="font-mono text-emerald-400">+ {formatRupiah(taxAmount)}</span>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+
+                                    {(isFee || (taxRate !== null && taxRate > 0)) && (
+                                        <>
+                                            <Separator className="bg-white/10" />
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-bold text-lg text-blue-400">Total Akhir</span>
+                                                <span className="font-bold text-2xl font-mono">{formatRupiah(jumlah)}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

@@ -65,6 +65,8 @@ interface RecapRow {
     InvoiceDate: string;
     TotalAmount: number;
     DP: number;
+    TaxRate: number | null;
+    TaxAmount: number;
     Jumlah: number;
     Terbilang: string;
     CreatedAt: string;
@@ -162,6 +164,8 @@ function RekapContent() {
                     InvoiceDate: inv.invoiceDate,
                     TotalAmount: Number(inv.totalAmount) || 0,
                     DP: Number(inv.dp) || 0,
+                    TaxRate: inv.taxRate != null ? Number(inv.taxRate) : null,
+                    TaxAmount: Number(inv.taxAmount) || 0,
                     Jumlah: Number(inv.grandTotal) || 0,
                     Terbilang: inv.terbilang,
                     CreatedAt: inv.createdAt,
@@ -218,6 +222,8 @@ function RekapContent() {
                     rows={rows.map(r => ({ ...r, consignee: r.consigne })) as Record<string, unknown>[]} // Map back for PDF if needed, or PDF uses consignee? generic PDF uses keys.
                     grandTotal={row.TotalAmount}
                     dp={row.DP}
+                    taxRate={row.TaxRate}
+                    taxAmount={row.TaxAmount}
                     jumlah={row.Jumlah}
                 />
             );
@@ -325,7 +331,7 @@ function RekapContent() {
                 sortingFn: 'datetime',
             },
             {
-                accessorKey: 'TotalAmount',
+                accessorKey: 'Jumlah',
                 header: 'Total',
                 cell: (info) => {
                     const value = info.getValue();
@@ -423,7 +429,7 @@ function RekapContent() {
 
     const filteredTotal = useMemo(() =>
         table.getFilteredRowModel().rows.reduce((s, r) => {
-            const amount = Number(r.original.TotalAmount);
+            const amount = Number(r.original.Jumlah);
             return s + (isNaN(amount) ? 0 : amount);
         }, 0),
         [table.getFilteredRowModel().rows]

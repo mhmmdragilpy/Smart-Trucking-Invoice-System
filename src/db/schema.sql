@@ -15,6 +15,8 @@ create table if not exists invoices (
   period_end date,
   total_amount numeric default 0,
   dp numeric default 0,
+  tax_rate numeric,
+  tax_amount numeric default 0,
   grand_total numeric default 0,
   terbilang text,
   created_at timestamptz default now(),

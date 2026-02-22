@@ -46,6 +46,8 @@ export async function createInvoiceAction(data: any) {
                 periodEnd: data.period_end || null,
                 totalAmount: data.total_amount?.toString(),
                 dp: data.dp?.toString(),
+                taxRate: data.tax_rate != null ? data.tax_rate.toString() : null,
+                taxAmount: data.tax_amount?.toString() ?? '0',
                 grandTotal: data.grand_total?.toString(),
                 terbilang: data.terbilang,
                 status: 'DRAFT',
@@ -117,6 +119,8 @@ export async function updateInvoiceAction(id: string, data: any) {
                 periodEnd: data.period_end || null,
                 totalAmount: data.total_amount?.toString(),
                 dp: data.dp?.toString(),
+                taxRate: data.tax_rate != null ? data.tax_rate.toString() : null,
+                taxAmount: data.tax_amount?.toString() ?? '0',
                 grandTotal: data.grand_total?.toString(),
                 terbilang: data.terbilang,
                 updatedAt: new Date(), // Update timestamp
